@@ -1335,6 +1335,7 @@ union bpf_attr {
 			__u32		attach_btf_obj_fd;
 		};
 		__u32		:32;		/* pad */
+		__aligned_u64	entry;		/* prog entry point */
 		__aligned_u64	fd_array;	/* array of FDs */
 	};
 

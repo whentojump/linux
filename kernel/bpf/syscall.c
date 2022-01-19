@@ -2365,30 +2365,31 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 	int err;
 	char license[128];
 	bool is_gpl;
+	void *prog_addr;
 
-    printk(KERN_WARNING "DJW %d\n", __LINE__);
+	printk(KERN_WARNING "DJW %d\n", __LINE__);
 
 	if (CHECK_ATTR(BPF_PROG_LOAD))
 		return -EINVAL;
 
-    printk(KERN_WARNING "DJW %d\n", __LINE__);
+	printk(KERN_WARNING "DJW %d\n", __LINE__);
 
-    if (attr->prog_flags & ~(BPF_F_STRICT_ALIGNMENT |
+	if (attr->prog_flags & ~(BPF_F_STRICT_ALIGNMENT |
 				 BPF_F_ANY_ALIGNMENT |
 				 BPF_F_TEST_STATE_FREQ |
 				 BPF_F_SLEEPABLE |
 				 BPF_F_TEST_RND_HI32))
 		return -EINVAL;
 
-    printk(KERN_WARNING "DJW %d\n", __LINE__);
+	printk(KERN_WARNING "DJW %d\n", __LINE__);
 	if (!IS_ENABLED(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS) &&
 	    (attr->prog_flags & BPF_F_ANY_ALIGNMENT) &&
 	    !bpf_capable())
 		return -EPERM;
 
-    printk(KERN_WARNING "DJW %d\n", __LINE__);
+	printk(KERN_WARNING "DJW %d\n", __LINE__);
 	/* copy eBPF program license from user space */
-    if (strncpy_from_bpfptr(license,
+	if (strncpy_from_bpfptr(license,
                             make_bpfptr(attr->license, uattr.is_kernel),
                             sizeof(license) - 1) < 0)
 		return -EFAULT;
@@ -2397,20 +2398,20 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 	/* eBPF programs must be GPL compatible to use GPL-ed functions */
 	is_gpl = license_is_gpl_compatible(license);
 
-    printk(KERN_WARNING "DJW %d\n", __LINE__);
+	printk(KERN_WARNING "DJW %d\n", __LINE__);
     
 	if (attr->insn_cnt == 0 ||
 	    attr->insn_cnt > (bpf_capable() ? BPF_COMPLEXITY_LIMIT_INSNS : BPF_MAXINSNS))
 		return -E2BIG;
 
-    printk(KERN_WARNING "DJW %d\n", __LINE__);
+	printk(KERN_WARNING "DJW %d\n", __LINE__);
     
 	if (type != BPF_PROG_TYPE_SOCKET_FILTER &&
 	    type != BPF_PROG_TYPE_CGROUP_SKB &&
 	    !bpf_capable())
 		return -EPERM;
 
-    printk(KERN_WARNING "DJW %d\n", __LINE__);
+	printk(KERN_WARNING "DJW %d\n", __LINE__);
     
 	if (is_net_admin_prog_type(type) && !capable(CAP_NET_ADMIN) && !capable(CAP_SYS_ADMIN))
 		return -EPERM;
@@ -2420,7 +2421,7 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 	/* attach_prog_fd/attach_btf_obj_fd can specify fd of either bpf_prog
 	 * or btf, we need to check which one it is
 	 */
-    printk(KERN_WARNING "DJW %d\n", __LINE__);
+	printk(KERN_WARNING "DJW %d\n", __LINE__);
 	if (attr->attach_prog_fd) {
 		dst_prog = bpf_prog_get(attr->attach_prog_fd);
 		if (IS_ERR(dst_prog)) {
@@ -2446,7 +2447,7 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 		btf_get(attach_btf);
 	}
 
-    printk(KERN_WARNING "DJW %d\n", __LINE__);
+	printk(KERN_WARNING "DJW %d\n", __LINE__);
 	bpf_prog_load_fixup_attach_type(attr);
 	if (bpf_prog_load_check_attach(type, attr->expected_attach_type,
 				       attach_btf, attr->attach_btf_id,
@@ -2457,7 +2458,7 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 			btf_put(attach_btf);
 		return -EINVAL;
 	}
-    printk(KERN_WARNING "DJW %d\n", __LINE__);
+	printk(KERN_WARNING "DJW %d\n", __LINE__);
     
 	/* plain bpf_prog allocation */
 	prog = bpf_prog_alloc(bpf_prog_size(attr->insn_cnt), GFP_USER);
@@ -2468,7 +2469,7 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 			btf_put(attach_btf);
 		return -ENOMEM;
 	}
-    printk(KERN_WARNING "DJW %d\n", __LINE__);
+	printk(KERN_WARNING "DJW %d\n", __LINE__);
     
 	prog->expected_attach_type = attr->expected_attach_type;
 	prog->aux->attach_btf = attach_btf;
@@ -2483,12 +2484,12 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 
 	prog->aux->user = get_current_user();
 	prog->len = attr->insn_cnt;
-    printk(KERN_WARNING "DJW %d\n", __LINE__);
+	printk(KERN_WARNING "DJW %d\n", __LINE__);
 	err = -EFAULT;
 	//if (copy_from_bpfptr(prog->insns,
 	//		     make_bpfptr(attr->insns, uattr.is_kernel),
 	//		     bpf_prog_insn_size(prog)) != 0)
-    /* DJW len is now just the size of the actual code */
+	/* DJW len is now just the size of the actual code */
 	if (copy_from_bpfptr(prog->insns,
 			     make_bpfptr(attr->insns, uattr.is_kernel),
                  prog->len) != 0)
@@ -2496,18 +2497,18 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 
 	prog->orig_prog = NULL;
 	//prog->jited = 0;
-    prog->jited = 1; /* DJW: we are always 'jited' */
+	prog->jited = 1; /* DJW: we are always 'jited' */
     
 	atomic64_set(&prog->aux->refcnt, 1);
 	prog->gpl_compatible = is_gpl ? 1 : 0;
-    printk(KERN_WARNING "DJW %d\n", __LINE__);
+	printk(KERN_WARNING "DJW %d\n", __LINE__);
 	if (bpf_prog_is_dev_bound(prog->aux)) {
 		err = bpf_prog_offload_init(prog, attr);
 		if (err)
 			goto free_prog_sec;
 	}
 
-    printk(KERN_WARNING "DJW %d\n", __LINE__);
+	printk(KERN_WARNING "DJW %d\n", __LINE__);
 	/* find program type: socket_filter vs tracing_filter */
 	err = find_prog_type(type, prog);
 	if (err < 0)
@@ -2519,31 +2520,33 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 	if (err < 0)
 		goto free_prog_sec;
 
-    printk(KERN_WARNING "DJW %d\n", __LINE__);
+	printk(KERN_WARNING "DJW %d\n", __LINE__);
 	/* run eBPF verifier */
 	/* err = bpf_check(&prog, attr, uattr); */
 	/* if (err < 0) */
 	/* 	goto free_used_maps; */
 
-    /* printk(KERN_WARNING "DJW %d\n", __LINE__); */
+	/* printk(KERN_WARNING "DJW %d\n", __LINE__); */
 	/* prog = bpf_prog_select_runtime(prog, &err); */
 	/* if (err < 0) */
 	/* 	goto free_used_maps; */
     
-    //prog->bpf_func = bpf_jit_alloc_exec(round_up(prog->len, PAGE_SIZE));
-    //prog->bpf_func = __vmalloc(round_up(prog->len, PAGE_SIZE), GFP_KERNEL, PAGE_KERNEL_EXEC);
-    //prog->bpf_func = module_alloc(round_up(prog->len, PAGE_SIZE));
+	//prog->bpf_func = bpf_jit_alloc_exec(round_up(prog->len, PAGE_SIZE));
+	//prog->bpf_func = __vmalloc(round_up(prog->len, PAGE_SIZE), GFP_KERNEL, PAGE_KERNEL_EXEC);
+	//prog->bpf_func = module_alloc(round_up(prog->len, PAGE_SIZE));
 	bpf_get_trace_printk_proto();
-	prog->bpf_func = __vmalloc_node_range(round_up(prog->len, PAGE_SIZE), PAGE_SIZE,
+	prog_addr = __vmalloc_node_range(round_up(prog->len, PAGE_SIZE), PAGE_SIZE,
                                           0xffffffff90000000, 0xffffffffa0000000, GFP_KERNEL,
                                           PAGE_KERNEL_EXEC, 0, NUMA_NO_NODE,
                                           __builtin_return_address(0));
-    printk(KERN_WARNING "DJW bpf_func vmalloc at %llx %d\n", (u64)prog->bpf_func, __LINE__);
-    memcpy(prog->bpf_func, prog->insns, prog->len);
+	printk(KERN_WARNING "DJW prog_addr vmalloc at %llx %d\n", (u64)prog_addr, __LINE__);
+	memcpy(prog_addr, prog->insns, prog->len);
 
-    
-    printk(KERN_WARNING "DJW bpf_func at %llx %d\n", (u64)prog->bpf_func, __LINE__);
-    printk(KERN_WARNING "DJW bpf_func at %x %x %x %d\n", ((u8 *)prog->bpf_func)[0], ((u8 *)prog->bpf_func)[1], ((u8 *)prog->bpf_func)[2], __LINE__);
+	prog->bpf_func = (void *)((u64)prog_addr + (u64)attr->entry);
+	printk(KERN_WARNING "DJW bpf_func at %llx %d\n", (u64)prog->bpf_func, __LINE__);
+	printk(KERN_WARNING "DJW bpf_func at %x %x %x %x %d\n", ((u8 *)prog->bpf_func)[0],
+			((u8 *)prog->bpf_func)[1], ((u8 *)prog->bpf_func)[2],
+			((u8 *)prog->bpf_func)[3], __LINE__);
 	err = bpf_prog_alloc_id(prog);
 	if (err)
 		goto free_used_maps;
