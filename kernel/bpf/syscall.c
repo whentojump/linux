@@ -2462,7 +2462,6 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 	int err;
 	char license[128];
 	bool is_gpl;
-	void *prog_addr;
 
 	u64 mem_start = 0xffffffff90000000;
 	void *mem, *p_entry;
