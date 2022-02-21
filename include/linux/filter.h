@@ -564,6 +564,7 @@ struct bpf_prog_stats {
 struct bpf_mem_node {
 	struct list_head node;
 	void *mem;
+	int page_cnt;
 };
 
 struct bpf_prog {
