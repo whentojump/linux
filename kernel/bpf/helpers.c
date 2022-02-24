@@ -42,14 +42,14 @@ const struct bpf_func_proto bpf_map_lookup_elem_proto = {
 	.arg2_type	= ARG_PTR_TO_MAP_KEY,
 };
 
-BPF_CALL_2(bpf_map_lookup_elem_iu, int *, map, void *, key)
+BPF_CALL_2(bpf_map_lookup_elem_iu, int, map, void *, key)
 {
 	struct bpf_map *curr;
 
-	if (!map)
+	if (map < 0 || map >= IU_MAX_MAPS)
 		return 0;
 
-	curr = iu_maps[*map];
+	curr = iu_maps[map];
 	if (!curr)
 		return 0;
 
@@ -84,15 +84,15 @@ const struct bpf_func_proto bpf_map_update_elem_proto = {
 	.arg4_type	= ARG_ANYTHING,
 };
 
-BPF_CALL_4(bpf_map_update_elem_iu, int *, map, void *, key,
+BPF_CALL_4(bpf_map_update_elem_iu, int, map, void *, key,
 	   void *, value, u64, flags)
 {
 	struct bpf_map *curr;
 
-	if (!map)
+	if (map < 0 || map >= IU_MAX_MAPS)
 		return -EINVAL;
 
-	curr = iu_maps[*map];
+	curr = iu_maps[map];
 	if (!curr)
 		return -EINVAL;
 
