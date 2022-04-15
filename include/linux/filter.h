@@ -21,7 +21,6 @@
 #include <linux/sockptr.h>
 #include <crypto/sha1.h>
 #include <linux/u64_stats_sync.h>
-#include <linux/list.h>
 
 #include <net/sch_generic.h>
 
@@ -561,11 +560,12 @@ struct bpf_prog_stats {
 	struct u64_stats_sync syncp;
 } __aligned(2 * sizeof(u64));
 
-struct bpf_mem_node {
-	struct list_head node;
+struct bpf_mem
+{
 	void *mem;
-	int page_cnt;
+	int total_page;
 };
+
 
 struct bpf_prog {
 	u16			pages;		/* Number of allocated pages */
@@ -592,7 +592,7 @@ struct bpf_prog {
 					    const struct bpf_insn *insn);
 	struct bpf_prog_aux	*aux;		/* Auxiliary fields */
 	struct sock_fprog_kern	*orig_prog;	/* Original BPF program */
-	struct bpf_mem_node	mem_head;
+	struct bpf_mem 		mem;
 	u8			no_bpf;
 	/* Instructions for interpreter */
 	struct sock_filter	insns[0];
