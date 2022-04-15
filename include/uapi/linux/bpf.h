@@ -1335,6 +1335,9 @@ union bpf_attr {
 			__u32		attach_btf_obj_fd;
 		};
 		__u32		rustfd;		/* file descriptor of Rust Program */
+		__aligned_u64	map_offs;	/* offsets of map relocs */
+		__u32		map_cnt;	/* length map reloc array */
+		__u32		:32;		/* pad */
 		__aligned_u64	fd_array;	/* array of FDs */
 	};
 
