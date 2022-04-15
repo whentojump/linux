@@ -52,10 +52,6 @@ static DEFINE_SPINLOCK(map_idr_lock);
 static DEFINE_IDR(link_idr);
 static DEFINE_SPINLOCK(link_idr_lock);
 
-/* IU_MAX_MAPS evaluates to 512, so in total this array is 1 page */
-struct bpf_map *iu_maps[IU_MAX_MAPS] = { NULL };
-DEFINE_MUTEX(iu_maps_mutex);
-
 int sysctl_unprivileged_bpf_disabled __read_mostly =
 	IS_BUILTIN(CONFIG_BPF_UNPRIV_DEFAULT_OFF) ? 2 : 0;
 
@@ -486,12 +482,6 @@ static void __bpf_map_put(struct bpf_map *map, bool do_idr_lock)
 	if (atomic64_dec_and_test(&map->refcnt)) {
 		/* bpf_map_free_id() must be called first */
 		bpf_map_free_id(map, do_idr_lock);
-		/* Fix iu_maps array here */
-		if (map->iu_idx != -1) {
-			mutex_lock(&iu_maps_mutex);
-			iu_maps[map->iu_idx] = NULL;
-			mutex_unlock(&iu_maps_mutex);
-		}
 		btf_put(map->btf);
 		INIT_WORK(&map->work, bpf_map_free_deferred);
 		schedule_work(&map->work);
@@ -824,7 +814,7 @@ static int map_check_btf(struct bpf_map *map, const struct btf *btf,
 	return ret;
 }
 
-#define BPF_MAP_CREATE_LAST_FIELD iu_idx
+#define BPF_MAP_CREATE_LAST_FIELD btf_vmlinux_value_type_id
 /* called via syscall */
 static int map_create(union bpf_attr *attr)
 {
@@ -844,9 +834,6 @@ static int map_create(union bpf_attr *attr)
 	} else if (attr->btf_key_type_id && !attr->btf_value_type_id) {
 		return -EINVAL;
 	}
-
-	if (attr->is_iu_map && attr->iu_idx >= IU_MAX_MAPS)
-		return -EINVAL;
 
 	f_flags = bpf_get_file_flag(attr->map_flags);
 	if (f_flags < 0)
@@ -873,7 +860,6 @@ static int map_create(union bpf_attr *attr)
 
 	map->spin_lock_off = -EINVAL;
 	map->timer_off = -EINVAL;
-	map->iu_idx = -1;
 	if (attr->btf_key_type_id || attr->btf_value_type_id ||
 	    /* Even the map's value is a kernel's struct,
 	     * the bpf_prog.o must have BTF to begin with
@@ -929,20 +915,6 @@ static int map_create(union bpf_attr *attr)
 		 */
 		bpf_map_put_with_uref(map);
 		return err;
-	}
-
-	if (attr->is_iu_map) {
-		mutex_lock(&iu_maps_mutex);
-		/* this idx is taken */
-		if (iu_maps[attr->iu_idx]) {
-			mutex_unlock(&iu_maps_mutex);
-			bpf_map_put_with_uref(map);
-			return -EINVAL;
-		}
-		// Cast is safe because current largest id is 512
-		map->iu_idx = (int)attr->iu_idx;
-		iu_maps[attr->iu_idx] = map;
-		mutex_unlock(&iu_maps_mutex);
 	}
 
 	return err;
@@ -2190,7 +2162,7 @@ static bool is_perfmon_prog_type(enum bpf_prog_type prog_type)
 }
 
 /* last field in 'union bpf_attr' used by this command */
-#define	BPF_PROG_LOAD_LAST_FIELD iu_maps_len
+#define	BPF_PROG_LOAD_LAST_FIELD fd_array
 
 static int bpf_prog_load(union bpf_attr *attr, bpfptr_t uattr)
 {
@@ -2514,6 +2486,7 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 	size_t ph_size;
 	Elf64_Addr plast_vaddr = 0;
 	Elf64_Half ph_i;
+	u64 addr_start = 0;
 
 	if (CHECK_ATTR(BPF_PROG_LOAD))
 		return -EINVAL;
@@ -2663,48 +2636,6 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 	//prog->bpf_func = __vmalloc(round_up(prog->len, PAGE_SIZE), GFP_KERNEL, PAGE_KERNEL_EXEC);
 	//prog->bpf_func = module_alloc(round_up(prog->len, PAGE_SIZE));
 	bpf_get_trace_printk_proto();
-	// Add map info
-	if (attr->iu_maps_len) {
-		struct bpf_map **used_maps;
-		u32 used_map_fds[MAX_USED_MAPS];
-		int idx;
-		if (attr->iu_maps_len >= MAX_USED_MAPS) {
-			printk("attr->iu_maps_len >= MAX_USED_MAPS\n");
-			err = -EINVAL;
-			goto free_prog_sec;
-		}
-
-		used_maps = kmalloc(sizeof(*used_maps) * attr->iu_maps_len, GFP_KERNEL);
-		if (!used_maps) {
-			printk("!used_maps\n");
-			err = -ENOMEM;
-			goto free_prog_sec;
-		}
-
-		if (copy_from_bpfptr(used_map_fds, USER_BPFPTR((void *)(attr->iu_maps)),
-							 sizeof(u32) * attr->iu_maps_len) != 0) {
-			printk("copy_from_bpfptr() != 0\n");
-			kfree(used_maps);
-			err = -EFAULT;
-			goto free_prog_sec;
-		}
-
-		for (idx = 0; idx < attr->iu_maps_len; idx++) {
-			// bpf_map_get gets the ref for us
-			struct bpf_map *curr = bpf_map_get(used_map_fds[idx]);
-			if (IS_ERR(curr)) {
-				printk("IS_ERR(curr)\n");
-				kfree(used_maps);
-				err = PTR_ERR(curr);
-				return err;
-				goto free_prog_sec;
-			}
-
-			used_maps[idx] = curr;
-		}
-		prog->aux->used_maps = used_maps;
-		prog->aux->used_map_cnt = attr->iu_maps_len;
-	}
 
 	INIT_LIST_HEAD(&prog->mem_head.node);
 	prog->no_bpf = 1;
@@ -2751,6 +2682,7 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 		struct bpf_mem_node *curr_node;
 		int page_cnt;
 		int vm_size;
+
 
 		if (phdr[ph_i].p_type != PT_LOAD)
 			continue;
@@ -2802,6 +2734,8 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 		if (p_vaddr_end > mem_size)
 			goto error_phdr;
 
+		printk("p_vaddr=0x%lx, p_vaddr_start=0x%lx, p_vaddr_end=0x%lx", p_vaddr, p_vaddr_start, p_vaddr_end);
+
 		/* Enforce 4k alignment for now */
 		if (p_align != 1UL << PAGE_SHIFT)
 			goto error_phdr;
@@ -2843,6 +2777,7 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 				round_up(mem_start + p_vaddr_start, p_align), // TODO check for potential overflow
 				round_up(mem_start + p_vaddr_end, p_align),
 				GFP_KERNEL, PAGE_KERNEL, VM_NO_GUARD, NUMA_NO_NODE, __builtin_return_address(0));
+		printk("ph_i=%d, mem=0x%lx", ph_i, (u64)mem);
 		if (!mem) {
 			err = -ENOMEM;
 			goto error_vm;
@@ -2860,7 +2795,7 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 			vfree(mem);
 			goto error_vm;
 		}
-		memcpy(mem, readbuf, p_filesz);
+		memcpy(mem - p_vaddr_start + p_vaddr, readbuf, p_filesz);
 		memset(mem + p_filesz, 0, p_memsz - p_filesz);
 
 		// Set correct permission
@@ -2884,7 +2819,12 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 		curr_node->mem = mem;
 		curr_node->page_cnt = page_cnt;
 		list_add(&(curr_node->node), &(prog->mem_head.node));
+
+		if (addr_start == 0)
+			addr_start = (u64)mem;
 	}
+
+	printk("addr_start=0x%lx\n", addr_start);
 
 	mem_size = e_end;
 
@@ -2893,6 +2833,50 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 	fput(filp);
 
 	prog->bpf_func = (void *)(mem_start + e_entry);
+
+	if (attr->map_cnt) {
+		u64 map_offs[MAX_USED_MAPS];
+		struct bpf_map **used_maps;
+		int idx;
+
+		if (attr->map_cnt >= MAX_USED_MAPS) {
+			printk("attr->iu_maps_len >= MAX_USED_MAPS\n");
+			err = -EINVAL;
+			goto free_used_maps;
+		}
+
+		if (copy_from_bpfptr(map_offs, USER_BPFPTR((void *)(attr->map_offs)),
+							 sizeof(u64) * attr->map_cnt) != 0) {
+			printk("copy_from_bpfptr() != 0\n");
+			err = -EFAULT;
+			goto free_used_maps;
+		}
+
+		used_maps = kmalloc(sizeof(*used_maps) * attr->map_cnt, GFP_KERNEL);
+		if (!used_maps) {
+			printk("!used_maps\n");
+			err = -ENOMEM;
+			goto free_used_maps;
+		}
+
+		for (idx = 0; idx < attr->map_cnt; idx++) {
+			u64 *map_addr = (u64 *)(addr_start + map_offs[idx]);
+			struct bpf_map *curr = bpf_map_get(*map_addr);
+			printk("map offset = 0x%lx\n", map_offs[idx]);
+			printk("map addr = 0x%lx\n", *map_addr);
+
+			if (IS_ERR(curr)) {
+				kfree(used_maps);
+				err = PTR_ERR(curr);
+				goto free_used_maps;
+			}
+
+			used_maps[idx] = curr;
+			*map_addr = (u64)curr;
+		}
+		prog->aux->used_maps = used_maps;
+		prog->aux->used_map_cnt = attr->map_cnt;
+	}
 
 	err = bpf_prog_alloc_id(prog);
 	if (err)

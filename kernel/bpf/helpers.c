@@ -42,30 +42,6 @@ const struct bpf_func_proto bpf_map_lookup_elem_proto = {
 	.arg2_type	= ARG_PTR_TO_MAP_KEY,
 };
 
-BPF_CALL_2(bpf_map_lookup_elem_iu, int, map, void *, key)
-{
-	struct bpf_map *curr;
-
-	if (map < 0 || map >= IU_MAX_MAPS)
-		return 0;
-
-	curr = iu_maps[map];
-	if (!curr)
-		return 0;
-
-	WARN_ON_ONCE(!rcu_read_lock_held() && !rcu_read_lock_bh_held());
-	return (unsigned long) curr->ops->map_lookup_elem(curr, key);
-}
-
-const struct bpf_func_proto bpf_map_lookup_elem_iu_proto = {
-	.func		= bpf_map_lookup_elem,
-	.gpl_only	= false,
-	.pkt_access	= true,
-	.ret_type	= RET_PTR_TO_MAP_VALUE_OR_NULL,
-	.arg1_type	= ARG_PTR_TO_INT,
-	.arg2_type	= ARG_PTR_TO_MAP_KEY,
-};
-
 BPF_CALL_4(bpf_map_update_elem, struct bpf_map *, map, void *, key,
 	   void *, value, u64, flags)
 {
@@ -79,33 +55,6 @@ const struct bpf_func_proto bpf_map_update_elem_proto = {
 	.pkt_access	= true,
 	.ret_type	= RET_INTEGER,
 	.arg1_type	= ARG_CONST_MAP_PTR,
-	.arg2_type	= ARG_PTR_TO_MAP_KEY,
-	.arg3_type	= ARG_PTR_TO_MAP_VALUE,
-	.arg4_type	= ARG_ANYTHING,
-};
-
-BPF_CALL_4(bpf_map_update_elem_iu, int, map, void *, key,
-	   void *, value, u64, flags)
-{
-	struct bpf_map *curr;
-
-	if (map < 0 || map >= IU_MAX_MAPS)
-		return -EINVAL;
-
-	curr = iu_maps[map];
-	if (!curr)
-		return -EINVAL;
-
-	WARN_ON_ONCE(!rcu_read_lock_held() && !rcu_read_lock_bh_held());
-	return curr->ops->map_update_elem(curr, key, value, flags);
-}
-
-const struct bpf_func_proto bpf_map_update_elem_iu_proto = {
-	.func		= bpf_map_update_elem,
-	.gpl_only	= false,
-	.pkt_access	= true,
-	.ret_type	= RET_INTEGER,
-	.arg1_type	= ARG_PTR_TO_INT,
 	.arg2_type	= ARG_PTR_TO_MAP_KEY,
 	.arg3_type	= ARG_PTR_TO_MAP_VALUE,
 	.arg4_type	= ARG_ANYTHING,
@@ -238,7 +187,7 @@ BPF_CALL_0(bpf_get_current_pid_tgid)
 		return -EINVAL;
 
     //printk(KERN_WARNING "DJW bpf_get_current_pid_tgid %d [%llx]\n", __LINE__, (u64) task->tgid << 32 | task->pid);
-
+    
 	return (u64) task->tgid << 32 | task->pid;
 }
 
