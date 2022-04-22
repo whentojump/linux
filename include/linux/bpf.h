@@ -181,7 +181,6 @@ struct bpf_map {
 	u32 btf_vmlinux_value_type_id;
 	bool bypass_spec_v1;
 	bool frozen; /* write-once; write-protected by freeze_mutex */
-	int iu_idx; /* inner-unikernel index if this is an iu map, otherwise -1 */
 	/* 22 bytes hole */
 
 	/* The 3rd and 4th cacheline with misc members to avoid false sharing
@@ -2225,8 +2224,5 @@ bool btf_id_set_contains(const struct btf_id_set *set, u32 id);
 int bpf_bprintf_prepare(char *fmt, u32 fmt_size, const u64 *raw_args,
 			u32 **bin_buf, u32 num_args);
 void bpf_bprintf_cleanup(void);
-
-extern struct bpf_map *iu_maps[IU_MAX_MAPS];
-extern struct mutex iu_maps_mutex;
 
 #endif /* _LINUX_BPF_H */
