@@ -2475,9 +2475,7 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 	char license[128];
 	bool is_gpl;
 
-	u64 mem_start = 0xffffffff90000000;
 	void *mem;
-	size_t mem_size = MAX_PROG_SZ;
 	Elf64_Phdr *phdr = NULL;
 	Elf64_Ehdr *ehdr = NULL;
 	Elf64_Addr e_entry;                 /* Program entry point */
@@ -2487,6 +2485,8 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 	Elf64_Addr plast_vaddr = 0;
 	Elf64_Half ph_i;
 	u64 addr_start = 0;
+	int *vm_size = NULL, *sec_off = NULL;
+	int total_vm = 0, offset, total_page = 0;
 
 	if (CHECK_ATTR(BPF_PROG_LOAD))
 		return -EINVAL;
@@ -2637,7 +2637,6 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 	//prog->bpf_func = module_alloc(round_up(prog->len, PAGE_SIZE));
 	bpf_get_trace_printk_proto();
 
-	INIT_LIST_HEAD(&prog->mem_head.node);
 	prog->no_bpf = 1;
 
 	filp = fget(attr->rustfd);
@@ -2662,6 +2661,14 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 		err = -ENOMEM;
 		goto error_ehdr;
 	}
+
+	vm_size = kmalloc(sizeof(int) * ehdr->e_phnum, GFP_KERNEL);
+	sec_off = kmalloc(sizeof(int) * ehdr->e_phnum, GFP_KERNEL);
+	if ((!vm_size) || (!sec_off)) {
+		err = -ENOMEM;
+		goto error_phdr;
+	}
+
 	err = elf_read(filp, phdr, ph_size, ehdr->e_phoff);
 	if (err)
 		goto error_phdr;
@@ -2677,15 +2684,12 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 		Elf64_Xword p_memsz = phdr[ph_i].p_memsz;
 		Elf64_Xword p_align = phdr[ph_i].p_align;
 		Elf64_Addr temp, p_vaddr_start, p_vaddr_end;
-		int prot;
-		void *readbuf;
-		struct bpf_mem_node *curr_node;
-		int page_cnt;
-		int vm_size;
 
-
-		if (phdr[ph_i].p_type != PT_LOAD)
+		if (phdr[ph_i].p_type != PT_LOAD){
+			vm_size[ph_i] = 0;
+			sec_off[ph_i] = 0;
 			continue;
+		}
 
 		/*
 		 * The ELF specification mandates that program headers are sorted on
@@ -2714,11 +2718,11 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 		/*
 		 * Verify p_vaddr + p_filesz is within range.
 		 */
-		if (p_vaddr >= mem_size)
+		if (p_vaddr >= MAX_PROG_SZ)
 			goto error_phdr;
 		if (check_add_overflow(p_vaddr, p_filesz, &temp))
 			goto error_phdr;
-		if (temp > mem_size)
+		if (temp > MAX_PROG_SZ)
 			goto error_phdr;
 
 		/*
@@ -2731,10 +2735,8 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 			goto error_phdr;
 		if (align_up(p_vaddr_end, p_align, &p_vaddr_end))
 			goto error_phdr;
-		if (p_vaddr_end > mem_size)
+		if (p_vaddr_end > MAX_PROG_SZ)
 			goto error_phdr;
-
-		printk("p_vaddr=0x%lx, p_vaddr_start=0x%lx, p_vaddr_end=0x%lx", p_vaddr, p_vaddr_start, p_vaddr_end);
 
 		/* Enforce 4k alignment for now */
 		if (p_align != 1UL << PAGE_SHIFT)
@@ -2758,6 +2760,33 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 		if (p_vaddr_end & (EM_PAGE_SIZE - 1))
 			goto error_phdr;
 
+		vm_size[ph_i] = round_up(p_vaddr_end - p_vaddr_start, p_align);
+		sec_off[ph_i] = p_vaddr - p_vaddr_start;
+		total_vm += vm_size[ph_i];
+	}
+
+	if (e_end != total_vm)
+		goto error_phdr;
+
+	mem = __vmalloc(total_vm, GFP_KERNEL_ACCOUNT | __GFP_ZERO | GFP_USER);
+	if (!mem) {
+		err = -ENOMEM;
+		goto error_phdr;
+	}
+	prog->mem.mem = mem;
+	addr_start = (u64)mem;
+
+	for (ph_i = 0, offset = 0; ph_i < ehdr->e_phnum; ph_i++) {
+		Elf64_Xword p_filesz = phdr[ph_i].p_filesz;
+		Elf64_Xword p_memsz = phdr[ph_i].p_memsz;
+		
+		int prot;
+		void *readbuf;
+		int page_cnt;
+
+		if (phdr[ph_i].p_type != PT_LOAD)
+			continue;
+		
 		prot = PROT_NONE;
 		if (phdr[ph_i].p_flags & PF_R)
 			prot |= PROT_READ;
@@ -2766,73 +2795,55 @@ static int bpf_prog_load_djw(union bpf_attr *attr, bpfptr_t uattr)
 		if (phdr[ph_i].p_flags & PF_X)
 			prot |= PROT_EXEC;
 		if ((prot & PROT_WRITE) && (prot & PROT_EXEC))
-			goto error_phdr;
-
-		// TODO check for NULL return value
-		vm_size = round_up(p_vaddr_end - p_vaddr_start, p_align);
-		if (!vm_size)
-			continue;
-
-		mem = __vmalloc_node_range(vm_size, p_align,
-				round_up(mem_start + p_vaddr_start, p_align), // TODO check for potential overflow
-				round_up(mem_start + p_vaddr_end, p_align),
-				GFP_KERNEL, PAGE_KERNEL, VM_NO_GUARD, NUMA_NO_NODE, __builtin_return_address(0));
-		printk("ph_i=%d, mem=0x%lx", ph_i, (u64)mem);
-		if (!mem) {
-			err = -ENOMEM;
 			goto error_vm;
-		}
 
 		readbuf = kmalloc(p_filesz, GFP_KERNEL);
 		if (!readbuf) {
-			vfree(mem);
 			err = -ENOMEM;
 			goto error_vm;
 		}
 		err = elf_read(filp, readbuf, p_filesz, phdr[ph_i].p_offset);
 		if (err) {
 			kfree(readbuf);
-			vfree(mem);
 			goto error_vm;
 		}
-		memcpy(mem - p_vaddr_start + p_vaddr, readbuf, p_filesz);
-		memset(mem + p_filesz, 0, p_memsz - p_filesz);
 
+		memcpy(mem + offset + sec_off[ph_i], readbuf, p_filesz);
+		memset(mem + offset + p_filesz, 0, p_memsz - p_filesz);
+		
 		// Set correct permission
-		page_cnt = (vm_size >> PAGE_SHIFT);
+		page_cnt = (vm_size[ph_i] >> PAGE_SHIFT);
+
 		if ((prot & PROT_READ) && (prot & PROT_EXEC)) {
-			set_memory_ro((unsigned long)mem, page_cnt);
-			set_memory_x((unsigned long)mem, page_cnt);
+			set_memory_ro((unsigned long)mem + offset, page_cnt);
+			set_memory_x((unsigned long)mem + offset, page_cnt);
 		} else if ((prot & PROT_READ) && (prot & PROT_WRITE)) {
-			set_memory_rw((unsigned long)mem, page_cnt); // acutally not needed
+			set_memory_rw((unsigned long)mem + offset, page_cnt); // acutally not needed
 		} else if (prot & PROT_READ) {
-			set_memory_ro((unsigned long)mem, page_cnt);
+			set_memory_ro((unsigned long)mem + offset, page_cnt);
 		} else {
 			kfree(readbuf);
-			vfree(mem);
+			if (offset) {
+				set_memory_nx((unsigned long)mem, total_page);
+				set_memory_rw((unsigned long)mem, total_page);
+			}
 			err = -EINVAL;
 			goto error_vm;
 		}
-
 		kfree(readbuf);
-		curr_node = kmalloc(sizeof(*curr_node), GFP_KERNEL);
-		curr_node->mem = mem;
-		curr_node->page_cnt = page_cnt;
-		list_add(&(curr_node->node), &(prog->mem_head.node));
 
-		if (addr_start == 0)
-			addr_start = (u64)mem;
+		total_page += page_cnt;
+		offset += vm_size[ph_i];
 	}
 
-	printk("addr_start=0x%lx\n", addr_start);
-
-	mem_size = e_end;
-
+	prog->mem.total_page = total_page;
 	kfree(ehdr);
 	kfree(phdr);
+	kfree(vm_size);
+	kfree(sec_off);
 	fput(filp);
 
-	prog->bpf_func = (void *)(mem_start + e_entry);
+	prog->bpf_func = (void *)(mem + e_entry);
 
 	if (attr->map_cnt) {
 		u64 map_offs[MAX_USED_MAPS];
@@ -2913,23 +2924,11 @@ free_used_maps:
 	__bpf_prog_put_noref(prog, prog->aux->func_cnt);
 	return err;
 error_vm:
-	{
-		struct list_head *it;
-		struct list_head *temp;
-		struct bpf_mem_node *curr;
-
-		list_for_each_safe(it, temp, &prog->mem_head.node) {
-			curr = list_entry(it, struct bpf_mem_node, node);
-			list_del(it);
-			set_memory_nx((unsigned long)(curr->mem), curr->page_cnt);
-			set_memory_rw((unsigned long)(curr->mem), curr->page_cnt);
-			vfree(curr->mem);
-			kfree(curr);
-
-		}
-	}
+	vfree(mem);
 error_phdr:
 	kfree(phdr);
+	kfree(vm_size);
+	kfree(sec_off);
 error_ehdr:
 	kfree(ehdr);
 	fput(filp);
