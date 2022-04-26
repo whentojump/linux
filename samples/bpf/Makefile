@@ -209,7 +209,7 @@ TPROGS_CFLAGS += --sysroot=$(SYSROOT)
 TPROGS_LDFLAGS := -L$(SYSROOT)/usr/lib
 endif
 
-TPROGS_LDLIBS			+= $(LIBBPF) -lelf -lz
+TPROGS_LDLIBS			+= $(LIBBPF) -lelf -lz -lm
 TPROGLDLIBS_tracex4		+= -lrt
 TPROGLDLIBS_trace_output	+= -lrt
 TPROGLDLIBS_map_perf_test	+= -lrt
