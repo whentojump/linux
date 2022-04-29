@@ -874,6 +874,7 @@ enum bpf_cmd {
 	BPF_LINK_DETACH,
 	BPF_PROG_BIND_MAP,
 	BPF_PROG_LOAD_IU_BASE,
+	BPF_PROG_LOAD_IU,
 };
 
 enum bpf_map_type {
@@ -950,6 +951,7 @@ enum bpf_prog_type {
 	BPF_PROG_TYPE_LSM,
 	BPF_PROG_TYPE_SK_LOOKUP,
 	BPF_PROG_TYPE_SYSCALL, /* a program that can execute syscalls */
+	BPF_PROG_TYPE_IU_BASE, /* inner-unikernel base prog, no verifier hooks */
 };
 
 enum bpf_attach_type {
@@ -1335,9 +1337,17 @@ union bpf_attr {
 			/* or valid module BTF object fd or 0 to attach to vmlinux */
 			__u32		attach_btf_obj_fd;
 		};
-		__u32		rustfd;		/* file descriptor of Rust Program */
-		__aligned_u64	map_offs;	/* offsets of map relocs */
-		__u32		map_cnt;	/* length map reloc array */
+		union {
+			struct {
+				__u32		rustfd;		/* file descriptor of Rust Program */
+				__aligned_u64	map_offs;	/* offsets of map relocs */
+				__u32		map_cnt;	/* length map reloc array */	
+			};
+			struct {
+				__u32		base_prog_fd; /* fd of the base prog */
+				__aligned_u64	prog_offset; /* offset of prog in base prog */
+			};
+		};
 		__u32		:32;		/* pad */
 		__aligned_u64	fd_array;	/* array of FDs */
 	};
