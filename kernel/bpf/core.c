@@ -2285,9 +2285,14 @@ static void bpf_prog_free_deferred(struct work_struct *work)
 	if (aux->prog->no_bpf) {
 		BUG_ON(aux->func_cnt);
 
-		set_memory_nx((unsigned long)aux->prog->mem.mem, aux->prog->mem.total_page);
-		set_memory_rw((unsigned long)aux->prog->mem.mem, aux->prog->mem.total_page);
-		vfree(aux->prog->mem.mem);
+		if (aux->prog->base) {
+			bpf_prog_put(aux->prog->base);
+		} else {
+			set_memory_nx((unsigned long)aux->prog->mem.mem, aux->prog->mem.total_page);
+			set_memory_rw((unsigned long)aux->prog->mem.mem, aux->prog->mem.total_page);
+			vfree(aux->prog->mem.mem);
+		}
+
 		// We have already cleared the prog pages
 		aux->prog->jited = 0;
 	}
