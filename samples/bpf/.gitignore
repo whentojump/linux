@@ -57,3 +57,9 @@ testfile.img
 hbm_out.log
 iperf.*
 *.out
+vmlinux.h
+xdp_monitor.skel.h
+xdp_redirect.skel.h
+xdp_redirect_cpu.skel.h
+xdp_redirect_map.skel.h
+xdp_redirect_map_multi.skel.h
