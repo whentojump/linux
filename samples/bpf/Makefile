@@ -264,6 +264,10 @@ endif
 endif
 endif
 
+BPF_EXTRA_CFLAGS += -g
+TPROGS_CFLAGS += -g
+TPROGS_LDFLAGS += -g
+
 # Trick to allow make to be run from this directory
 all:
 	$(MAKE) -C ../../ M=$(CURDIR) BPF_SAMPLES_PATH=$(CURDIR)
