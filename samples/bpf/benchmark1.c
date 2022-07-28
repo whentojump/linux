@@ -4,7 +4,8 @@
 
 char _license[] SEC("license") = "GPL";
 
-SEC("hello")    // TODO choose a proper program type: 1. section name
+SEC("tracepoint/syscalls/sys_enter_dup")
+                // TODO choose a proper program type: 1. section name
 int bpf_prog1() //                                    2. entry prototype
 {
 	char msg[] = "hello bpf\n";
