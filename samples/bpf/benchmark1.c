@@ -9,6 +9,6 @@ SEC("tracepoint/syscalls/sys_enter_dup")
 int bpf_prog1() //                                    2. entry prototype
 {
 	char msg[] = "hello bpf\n";
-	bpf_printk(msg);
+	bpf_trace_printk(msg, sizeof(msg));
 	return 0;
 }
