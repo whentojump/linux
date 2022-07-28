@@ -59,6 +59,7 @@ TOOLS_PATH := $(BPF_SAMPLES_PATH)/../../tools
 # tprogs-y += xdp_monitor
 
 tprogs-y := trace_event
+tprogs-y += benchmark_user2
 
 # Libbpf dependencies
 LIBBPF = $(TOOLS_PATH)/lib/bpf/libbpf.a
@@ -96,6 +97,7 @@ xdp_router_ipv4-objs := xdp_router_ipv4_user.o
 test_current_task_under_cgroup-objs := $(CGROUP_HELPERS) \
 				       test_current_task_under_cgroup_user.o
 trace_event-objs := trace_event_user.o $(TRACE_HELPERS)
+benchmark_user2-objs := benchmark_user2.o $(TRACE_HELPERS)
 sampleip-objs := sampleip_user.o $(TRACE_HELPERS)
 tc_l2_redirect-objs := tc_l2_redirect_user.o
 lwt_len_hist-objs := lwt_len_hist_user.o
