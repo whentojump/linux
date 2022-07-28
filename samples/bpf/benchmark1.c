@@ -1,19 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0
-/* Refer to samples/bpf/tcp_bpf.readme for the instructions on
- * how to run this sample program.
- */
 #include <linux/bpf.h>
-
 #include <bpf/bpf_helpers.h>
-#include <bpf/bpf_endian.h>
 
-int _version SEC("version") = 1;
 char _license[] SEC("license") = "GPL";
 
-SEC("hello")
-int _hello()
+SEC("hello")    // TODO choose a proper program type: 1. section name
+int bpf_prog1() //                                    2. entry prototype
 {
-	bpf_printk("hello bpf\n");
-
-	return 1;
+	char msg[] = "hello bpf\n";
+	bpf_printk(msg);
+	return 0;
 }
