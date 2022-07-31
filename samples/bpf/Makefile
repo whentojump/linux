@@ -274,6 +274,10 @@ BPF_EXTRA_CFLAGS += -g
 TPROGS_CFLAGS += -g
 TPROGS_LDFLAGS += -g
 
+BPF_EXTRA_CFLAGS += -Wno-unused-variable
+TPROGS_CFLAGS += -Wno-unused-variable
+TPROGS_LDFLAGS += -Wno-unused-variable
+
 # Trick to allow make to be run from this directory
 all:
 	$(MAKE) -C ../../ M=$(CURDIR) BPF_SAMPLES_PATH=$(CURDIR)
