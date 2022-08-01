@@ -28,6 +28,35 @@
 #include <uapi/linux/filter.h>
 #include <uapi/linux/bpf.h>
 
+#define start_time()                                                           \
+({                                                                             \
+	u64 t;                                                                 \
+	asm volatile(                                                          \
+		"lfence\n\t"                                                   \
+		"rdtsc\n\t"                                                    \
+		"shl $32, %%rdx\n\t"                                           \
+		"or %%rdx, %0\n\t"                                             \
+		"lfence"                                                       \
+		: "=a"(t) /*output*/                                           \
+		:                                                              \
+		: "rdx", "memory", "cc");                                      \
+	(t);                                                                   \
+})
+
+#define stop_time()                                                            \
+({                                                                             \
+	u64 t;                                                                 \
+	asm volatile(                                                          \
+		"rdtscp\n\t"                                                   \
+		"shl $32, %%rdx\n\t"                                           \
+		"or %%rdx, %0\n\t"                                             \
+		"lfence"                                                       \
+		: "=a"(t) /*output*/                                           \
+		:                                                              \
+		: "rcx", "rdx", "memory", "cc");                               \
+	(t);                                                                   \
+})
+
 struct sk_buff;
 struct sock;
 struct seccomp_data;
@@ -638,8 +667,13 @@ static __always_inline u32 __bpf_prog_run(const struct bpf_prog *prog,
 
 static __always_inline u32 bpf_prog_run(const struct bpf_prog *prog, const void *ctx)
 {
-	printk(KERN_WARNING "looks like the entry");
-	return __bpf_prog_run(prog, ctx, bpf_dispatcher_nop_func);
+	u32 ret;
+
+	printk(KERN_WARNING "start time: %llu", start_time());
+	ret = __bpf_prog_run(prog, ctx, bpf_dispatcher_nop_func);
+	printk(KERN_WARNING " stop time: %llu", stop_time());
+
+	return ret;
 }
 
 /*
