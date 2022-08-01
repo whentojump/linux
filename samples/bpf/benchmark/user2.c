@@ -298,7 +298,7 @@ int main(int argc, char **argv)
 	char filename[256];
 	int error = 1;
 
-	snprintf(filename, sizeof(filename), "benchmark2.o");
+	snprintf(filename, sizeof(filename), "kern2.o");
 
 	printf("%s\n", filename);
 

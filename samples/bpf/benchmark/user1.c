@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include "perf-sys.h"
 
-#define OBJ_FILENAME "benchmark1.o"
+#define OBJ_FILENAME "kern1.o"
 #define PROG_NAME "bpf_prog1"
 
 struct bpf_program *prog;
