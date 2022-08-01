@@ -21,14 +21,14 @@ __tprogs := $(sort $(tprogs-y))
 # C code
 # Executables compiled from a single .c file
 tprog-csingle	:= $(foreach m,$(__tprogs), \
-			$(if $($(m)-objs),,$(m)))
+			$(if $($(notdir $(m))-objs),,$(m)))
 
 # C executables linked based on several .o files
 tprog-cmulti	:= $(foreach m,$(__tprogs),\
-			$(if $($(m)-objs),$(m)))
+			$(if $($(notdir $(m))-objs),$(m)))
 
 # Object (.o) files compiled from .c files
-tprog-cobjs	:= $(sort $(foreach m,$(__tprogs),$($(m)-objs)))
+tprog-cobjs	:= $(sort $(foreach m,$(__tprogs),$($(notdir $(m))-objs)))
 
 tprog-csingle	:= $(addprefix $(obj)/,$(tprog-csingle))
 tprog-cmulti	:= $(addprefix $(obj)/,$(tprog-cmulti))
