@@ -8,7 +8,7 @@ SEC("tracepoint/syscalls/sys_enter_dup")
                 // TODO choose a proper program type: 1. section name
 int bpf_prog1() //                                    2. entry prototype
 {
-	char msg[] = "hello bpf\n";
+	char msg[] = "Hello BPF!\n";
 	bpf_trace_printk(msg, sizeof(msg));
 	return 0;
 }
