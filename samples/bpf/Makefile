@@ -59,8 +59,8 @@ TOOLS_PATH := $(BPF_SAMPLES_PATH)/../../tools
 # tprogs-y += xdp_monitor
 
 tprogs-y := trace_event
-tprogs-y += benchmark/benchmark_user1
-tprogs-y += benchmark/benchmark_user2
+tprogs-y += benchmark/user1
+tprogs-y += benchmark/user2
 
 # Libbpf dependencies
 LIBBPF = $(TOOLS_PATH)/lib/bpf/libbpf.a
@@ -98,8 +98,8 @@ xdp_router_ipv4-objs := xdp_router_ipv4_user.o
 test_current_task_under_cgroup-objs := $(CGROUP_HELPERS) \
 				       test_current_task_under_cgroup_user.o
 trace_event-objs := trace_event_user.o $(TRACE_HELPERS)
-benchmark_user1-objs := benchmark/benchmark_user1.o
-benchmark_user2-objs := benchmark/benchmark_user2.o $(TRACE_HELPERS)
+user1-objs := benchmark/user1.o
+user2-objs := benchmark/user2.o $(TRACE_HELPERS)
 sampleip-objs := sampleip_user.o $(TRACE_HELPERS)
 tc_l2_redirect-objs := tc_l2_redirect_user.o
 lwt_len_hist-objs := lwt_len_hist_user.o
@@ -157,8 +157,8 @@ always-y := $(tprogs-y)
 # always-y += xdp_router_ipv4_kern.o
 # always-y += test_current_task_under_cgroup_kern.o
 always-y += trace_event_kern.o
-always-y += benchmark/benchmark1.o
-always-y += benchmark/benchmark2.o
+always-y += benchmark/kern1.o
+always-y += benchmark/kern2.o
 # always-y += sampleip_kern.o
 # always-y += lwt_len_hist_kern.o
 # always-y += xdp_tx_iptunnel_kern.o

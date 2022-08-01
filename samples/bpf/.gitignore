@@ -57,8 +57,6 @@ testfile.img
 hbm_out.log
 iperf.*
 *.out
-benchmark_user1
-benchmark_user2
 vmlinux.h
 xdp_monitor.skel.h
 xdp_redirect.skel.h
