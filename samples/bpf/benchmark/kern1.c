@@ -8,7 +8,15 @@ SEC("tracepoint/syscalls/sys_enter_dup")
                 // TODO choose a proper program type: 1. section name
 int bpf_prog1() //                                    2. entry prototype
 {
-	char msg[] = "Hello BPF!\n";
-	bpf_trace_printk(msg, sizeof(msg));
+	/* buggy */
+	/* the higher 4B will not be zeroed? */
+
+	// char msg[] = "pid = 0x%lx\n";
+	// u32 pid = (bpf_get_current_pid_tgid() & 0xFFFFFFFFULL);
+	// bpf_trace_printk(msg, sizeof(msg), pid);
+
+	char msg[] = "ret = 0x%llx\n";
+	u64 ret = bpf_get_current_pid_tgid();
+	bpf_trace_printk(msg, sizeof(msg), ret);
 	return 0;
 }
