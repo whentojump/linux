@@ -668,10 +668,15 @@ static __always_inline u32 __bpf_prog_run(const struct bpf_prog *prog,
 static __always_inline u32 bpf_prog_run(const struct bpf_prog *prog, const void *ctx)
 {
 	u32 ret;
+	u64 t_start, t_stop;
 
-	printk(KERN_WARNING "start time: %llu", start_time());
+	t_start = start_time();
 	ret = __bpf_prog_run(prog, ctx, bpf_dispatcher_nop_func);
-	printk(KERN_WARNING " stop time: %llu", stop_time());
+	t_stop = stop_time();
+
+	printk(KERN_WARNING "t_start: %llu\n", t_start);
+	printk(KERN_WARNING "t_stop:  %llu\n", t_stop);
+	printk(KERN_WARNING "t_delta: %llu\n", t_stop-t_start);
 
 	return ret;
 }
