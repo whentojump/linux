@@ -10,7 +10,6 @@
 #include <fcntl.h>
 #include "perf-sys.h"
 
-#define OBJ_FILENAME "kern1.o"
 #define PROG_NAME "bpf_prog1"
 
 struct bpf_program *prog;
@@ -75,7 +74,17 @@ int main(int argc, char **argv)
 {
 	struct bpf_object *obj = NULL;
 
-	obj = bpf_object__open_file(OBJ_FILENAME, NULL); // what will be loaded
+	if (argc != 2) {
+		printf("                                                        \n");
+		printf("Please provide the filename of BPF program. For example:\n");
+		printf("                                                        \n");
+		printf("  %s kern_100k.o\n", argv[0]);
+		printf("                                                        \n");
+		return -1;
+	}
+
+	// TODO error handling
+	obj = bpf_object__open_file(argv[1], NULL); // what will be loaded
 	prog = bpf_object__find_program_by_name(obj, PROG_NAME); // used in attach()
 	bpf_object__load(obj);
 
