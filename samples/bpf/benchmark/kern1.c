@@ -16,7 +16,9 @@ int bpf_prog1() //                                    2. entry prototype
 	// bpf_trace_printk(msg, sizeof(msg), pid);
 
 	char msg[] = "ret = 0x%llx\n";
-	u64 ret = bpf_get_current_pid_tgid();
-	bpf_trace_printk(msg, sizeof(msg), ret);
+	u64 ret;
+
+	#include "workload.c"
+
 	return 0;
 }
