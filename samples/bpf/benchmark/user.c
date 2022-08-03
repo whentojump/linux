@@ -49,25 +49,29 @@ static void attach(void) {
 	directly ioctl(perf_event_fd, prog_fd)
 */
 
-static void show(void) {
-	/* the kernel tree version */
-	/* somehow this is a one-shot print */
-	/* TODO what is the mechanism of trace_pipe "file"? */
+// static void show(void) {
+// 	/* the kernel tree version */
+// 	/* somehow this is a one-shot print */
+// 	/* TODO what is the mechanism of trace_pipe "file"? */
 
-	// read_trace_pipe();
+// 	// read_trace_pipe();
 
-	/* IU version */
-	/* this won't exit so the user program should be put into the bg */
+// 	/* IU version */
+// 	/* this won't exit so the user program should be put into the bg */
 
-	int trace_pipe_fd;
-	char c;
+// 	int trace_pipe_fd;
+// 	char c;
 
-	trace_pipe_fd = openat(AT_FDCWD,
-		"/sys/kernel/debug/tracing/trace_pipe", O_RDONLY);
-	for (;;) {
-		if (read(trace_pipe_fd, &c, 1) == 1)
-		putchar(c);
-	}
+// 	trace_pipe_fd = openat(AT_FDCWD,
+// 		"/sys/kernel/debug/tracing/trace_pipe", O_RDONLY);
+// 	for (;;) {
+// 		if (read(trace_pipe_fd, &c, 1) == 1)
+// 		putchar(c);
+// 	}
+// }
+
+static void trigger(void) {
+	syscall(__NR_dup, 1);
 }
 
 int main(int argc, char **argv)
@@ -89,5 +93,6 @@ int main(int argc, char **argv)
 	bpf_object__load(obj);
 
 	attach();
-	show();
+	trigger();
+	// show();
 }
