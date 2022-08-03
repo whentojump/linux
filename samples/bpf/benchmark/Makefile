@@ -6,6 +6,7 @@ LINUX_SRC_TREE_BPF_SAMPLES = $(realpath $(LINUX_SRC_TREE_ROOT)/samples/bpf)
 
 BPF_PROGS = $(addprefix autogen/, $(shell cat program_list.txt))
 BPF_PROG_SRC_FILES = $(addsuffix .c, $(basename $(BPF_PROGS)))
+WORKLOAD_SRC_FILES = $(subst kern,workload, $(BPF_PROG_SRC_FILES))
 
 all: trigger compile_bpf_samples
 
@@ -22,5 +23,6 @@ trigger: trigger.c
 clean:
 	rm -vf trigger
 	rm -vf $(BPF_PROG_SRC_FILES)
+	rm -vf $(WORKLOAD_SRC_FILES)
 	$(MAKE) -C $(LINUX_SRC_TREE_ROOT) M=$(LINUX_SRC_TREE_BPF_SAMPLES) clean
 	@find $(LINUX_SRC_TREE_BPF_SAMPLES) -type f -name '*~' -delete
