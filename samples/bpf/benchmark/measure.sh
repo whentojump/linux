@@ -25,8 +25,9 @@ fi
 echo
 echo "Nominal program size"
 echo "--------------------"
-echo "For now we are not really doing the calculation or estimation. So this is"
-echo "basically nonsense."
+echo "By \"nominal\", we mean we start from this value, estimate how many lines"
+echo "of C code there should be, and then generate the program. The obtained"
+echo "BPF assembly may have a slightly different size."
 echo "-------------------------------------------------------------------------"
 
 cat program_size.txt
@@ -34,6 +35,9 @@ cat program_size.txt
 echo
 echo "Real program size"
 echo "-----------------"
+echo "By \"real\", we mean this is the actual size of obtained BPF programs,"
+echo "measured through tools like `llvm-objdump' and `bpftool'."
+echo "-------------------------------------------------------------------------"
 
 for prog_name in $( cat program_name.txt )
 do

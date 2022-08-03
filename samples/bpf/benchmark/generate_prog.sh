@@ -40,8 +40,9 @@ do
 
     # Calculate how many times the base workload should get replicated
     bpf_asm_insns=$prog_size
-    # TODO calculate $c_insns from $bpf_asm_insns
-    c_insns=$bpf_asm_insns
+    # The ratio is approximately 2.5 / 1. Also we want to keep the size a
+    # multiple of 100
+    c_insns=$( bc <<< "$bpf_asm_insns / 250 * 100" )
     replicate_time=$( bc <<< "$c_insns / $replicate_step" )
 
     # Generate source files
