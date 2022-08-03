@@ -116,4 +116,20 @@ do
 done
 ```
 
-TODO prebuilt object files
+Or they can use prebuilt object files:
+
+```shell
+cd ~/linux/samples/bpf/benchmark/
+make clean
+
+wget https://github.com/whentojump/linux/releases/download/dummy/bpf_without_tail_call.tar.gz
+tar zxvf bpf_without_tail_call.tar.gz
+cp bpf_without_tail_call/* ~/linux/samples/bpf/benchmark/autogen
+rm -r bpf_without_tail_call bpf_without_tail_call.tar.gz
+
+# Skip compiling BPF programs and only compile the user program
+mv program_name.txt program_name.txt.disable
+make
+# Restore the file for being used during measurement
+mv program_name.txt.disable program_name.txt
+```
