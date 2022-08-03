@@ -4,7 +4,7 @@ MAKE = make
 LINUX_SRC_TREE_ROOT = $(realpath $(CURDIR)/../../..)
 LINUX_SRC_TREE_BPF_SAMPLES = $(realpath $(LINUX_SRC_TREE_ROOT)/samples/bpf)
 
-BPF_PROGS = $(shell cat program_list.txt)
+BPF_PROGS = $(addprefix autogen/, $(shell cat program_list.txt))
 BPF_PROG_SRC_FILES = $(addsuffix .c, $(basename $(BPF_PROGS)))
 
 all: trigger compile_bpf_samples
