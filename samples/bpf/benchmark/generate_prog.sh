@@ -1,6 +1,7 @@
 #!/bin/bash
 
 base_prog_src_filename=$1
+base_workload_src_filename="workload_base.c"
 
 for prog in $( cat program_list.txt )
 do
@@ -18,4 +19,7 @@ do
     # The variable-length part is wrapped with an `#include' directive.
     # Change the included filename accordingly.
     sed -i "s/workload_base/workload_${bpf_asm_kilo_insns}k/" autogen/$src
+    # TODO Temporarily cheat this, just in order to compile
+    echo "Generating autogen/workload_${bpf_asm_kilo_insns}k.c"
+    cp $base_workload_src_filename autogen/workload_${bpf_asm_kilo_insns}k.c
 done
