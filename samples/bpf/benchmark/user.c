@@ -93,10 +93,10 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	// TODO error handling
+	// TODO better error handling
 	obj = bpf_object__open_file(argv[1], NULL); // what will be loaded
 	prog = bpf_object__find_program_by_name(obj, PROG_NAME); // used in attach()
-	bpf_object__load(obj);
+	if (bpf_object__load(obj)) return 1;
 
 	attach();
 	trigger();

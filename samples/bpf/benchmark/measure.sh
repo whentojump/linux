@@ -2,14 +2,26 @@
 
 prog_num=$( cat program_name.txt | wc -l )
 
+any_failure=no
+
 for prog_name in $( cat program_name.txt )
 do
     echo $prog_name
-    ./user autogen/$prog_name
+    ./user autogen/$prog_name || any_failure=yes
 done
 
 echo
 echo "//////////////// Summary ///////////////"
+
+if [[ $any_failure == yes ]]; then
+    echo
+    echo "!!!WARNING!!!"
+    echo "Looks one or more of the programs have failed, possibly because of"
+    echo "the limit of BPF program size. This script does NOT yet handle such"
+    echo "cases well, and please treat the following report carefully. Some"
+    echo "manual adjustments might be needed."
+fi
+
 echo
 echo "Nominal program size"
 echo "--------------------"
