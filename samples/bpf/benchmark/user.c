@@ -38,12 +38,18 @@ static void attach(void) {
 
 /*
 	TODO
-	What is perf and trace exactly? Looks like tracepoint is a subset of perf?
-	Why the hello examples on the Internet don't have the attach step? because of older kernel versions?
-	Why other examples specify syscall through SEC name of the BPF program? while here we manually craft a perf_event_attr struct?
+	What is perf and trace exactly? Looks like tracepoint is a subset of
+	perf?
+
+	Why the hello examples on the Internet don't have the attach step?
+	because of older kernel versions?
+	
+	Why other examples specify syscall through SEC name of the BPF program?
+	while here we manually craft a perf_event_attr struct?
 
 	Kernel sample:
-	attach_perf_event(program_struct, perf_event_fd) which involves ioctl(), there is also an attach() routine
+	attach_perf_event(program_struct, perf_event_fd) which involves ioctl(),
+	there is also an attach() routine
 
 	IU example:
 	directly ioctl(perf_event_fd, prog_fd)
