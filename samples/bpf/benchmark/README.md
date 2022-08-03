@@ -22,7 +22,7 @@ cd ~/linux/samples/bpf/benchmark/
 Example output:
 
 ```
-//////////////// Summary ///////////////
+//////////////////////////// Summary ///////////////////////////
 
 !!!WARNING!!!
 Looks one or more of the programs have failed, possibly because of
@@ -31,23 +31,27 @@ cases well, and please treat the following report carefully. Some
 manual adjustments might be needed.
 
 Nominal program size
---------------------
-For now we are not really doing the calculation or estimation. So this is
-basically nonsense.
+====================
+By "nominal", we mean we start from this value, estimate how many lines
+of C code there should be, and then generate the program. The obtained
+BPF assembly may have a slightly different size.
 -------------------------------------------------------------------------
-40000
-80000
-120000
-160000
+100000
 200000
-240000
-280000
-320000
-360000
+300000
 400000
+500000
+600000
+700000
+800000
+900000
+1000000
 
 Real program size
------------------
+=================
+By "real", we mean this is the actual size of obtained BPF programs,
+measured through tools like `llvm-objdump' and `bpftool'.
+-------------------------------------------------------------------------
 100010
 200010
 300010
@@ -60,17 +64,23 @@ Real program size
 1000010
 
 CPU cycles
-----------
-6429084
-13321129
-19634354
-31091538
-32524178
-39286781
-44947729
-51403839
-59768029
+==========
+6597257
+12860277
+19231489
+26073031
+32173381
+38274114
+46606346
+51249508
+58847190
 ```
+
+Plot of the results:
+
+(Unfortunately, we don't have scripts to automate this step. You have to copy the above columns into your favorite app like `*Office`, and draw the figure in app-dependent ways.)
+
+![plog.png](plot.png)
 
 ## What if it took too long to build the benchmark
 
