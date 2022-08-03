@@ -14,16 +14,18 @@ base_workload_src_filename=$2
 base_workload_c_insns=$( cat $base_workload_src_filename | wc -l )
 
 #
-# Replicate by a larger step (1k lines of C code) for better I/O efficiency
+# Replicate by a larger step (0.1k lines of C code) for better I/O efficiency
 #
 
-rm -vf autogen/workload_1k_step.c
+replicate_step=100
 
-replicate_time=$( bc <<< "1000 / $base_workload_c_insns" )
+rm -vf autogen/workload_0.1k_step.c
+
+replicate_time=$( bc <<< "$replicate_step / $base_workload_c_insns" )
 
 for i in $( seq $replicate_time )
 do
-    cat $base_workload_src_filename >> autogen/workload_1k_step.c
+    cat $base_workload_src_filename >> autogen/workload_0.1k_step.c
 done
 
 IFS=$'\n'
@@ -40,19 +42,19 @@ do
     bpf_asm_insns=$prog_size
     # TODO calculate $c_insns from $bpf_asm_insns
     c_insns=$bpf_asm_insns
-    replicate_time=$( bc <<< "$c_insns / 1000" )
+    replicate_time=$( bc <<< "$c_insns / $replicate_step" )
 
     # Generate source files
     echo "Generating autogen/$src_name"
     cp $base_prog_src_filename autogen/$src_name
     # The variable-length part is wrapped with an `#include' directive.
     # Change the included filename accordingly.
-    sed -i "s/workload_base/workload_${replicate_time}k/" autogen/$src_name
+    sed -i "s/workload_base/workload_${replicate_time}00/" autogen/$src_name
     # Now handle the included part, i.e. workload
-    rm -vf autogen/workload_${replicate_time}k.c
-    echo "Generating autogen/workload_${replicate_time}k.c"
+    rm -vf autogen/workload_${replicate_time}00.c
+    echo "Generating autogen/workload_${replicate_time}00.c"
     for i in $( seq $replicate_time )
     do
-        cat autogen/workload_1k_step.c >> autogen/workload_${replicate_time}k.c
+        cat autogen/workload_0.1k_step.c >> autogen/workload_${replicate_time}00.c
     done
 done
