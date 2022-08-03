@@ -1,7 +1,7 @@
 #!/bin/bash
 
 base_prog_src_filename=$1
-base_workload_src_filename="workload_base.c"
+base_workload_src_filename=$2
 
 for prog in $( cat program_list.txt )
 do

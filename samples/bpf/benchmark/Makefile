@@ -10,11 +10,11 @@ WORKLOAD_SRC_FILES = $(subst kern,workload, $(BPF_PROG_SRC_FILES))
 
 all: trigger compile_bpf_samples
 
-generate_bpf_prog_src_files: kern_base.c
+autogen/%.c: kern_base.c workload_base.c
 	./generate_prog.sh $^
 
 # "call" into the Makefile of source tree root
-compile_bpf_samples: generate_bpf_prog_src_files
+compile_bpf_samples: $(BPF_PROG_SRC_FILES)
 	$(MAKE) -C $(LINUX_SRC_TREE_ROOT) M=$(LINUX_SRC_TREE_BPF_SAMPLES) BPF_SAMPLES_PATH=$(LINUX_SRC_TREE_BPF_SAMPLES)
 
 trigger: trigger.c
