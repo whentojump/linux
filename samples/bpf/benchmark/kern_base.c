@@ -18,7 +18,7 @@ int bpf_prog1() //                                    2. entry prototype
 	char msg[] = "ret = 0x%llx\n";
 	u64 ret;
 
-	#include "workload.c"
+	#include "workload_base.c"
 
 	return 0;
 }
