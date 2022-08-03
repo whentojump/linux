@@ -1,5 +1,7 @@
 #!/bin/bash
 
+base_prog_src_filename=$1
+
 for prog in $( cat program_list.txt )
 do
     # Get the source filename
@@ -12,7 +14,7 @@ do
 
     # Generate source files
     echo "Generating autogen/$src"
-    cp kern_base.c autogen/$src
+    cp $base_prog_src_filename autogen/$src
     # The variable-length part is wrapped with an `#include' directive.
     # Change the included filename accordingly.
     sed -i "s/workload_base/workload_${bpf_asm_kilo_insns}k/" autogen/$src

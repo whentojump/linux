@@ -9,11 +9,8 @@ BPF_PROG_SRC_FILES = $(addsuffix .c, $(basename $(BPF_PROGS)))
 
 all: trigger compile_bpf_samples
 
-# TODO use some scripts to change file contents
-# kern_%k.c: kern_base.c
-# 	cp $^ $@
 generate_bpf_prog_src_files: kern_base.c
-	$(foreach f, $(BPF_PROG_SRC_FILES), cp $^ $(f);)
+	./generate_prog.sh $^
 
 # "call" into the Makefile of source tree root
 compile_bpf_samples: generate_bpf_prog_src_files
