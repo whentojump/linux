@@ -11,9 +11,9 @@ do
     # TODO estimate $c_insns from $bpf_asm_insns
 
     # Generate source files
-    echo "Generating $src"
-    cp kern_base.c $src
+    echo "Generating autogen/$src"
+    cp kern_base.c autogen/$src
     # The variable-length part is wrapped with an `#include' directive.
     # Change the included filename accordingly.
-    sed -i "s/workload_base/workload_${bpf_asm_kilo_insns}k/" $src
+    sed -i "s/workload_base/workload_${bpf_asm_kilo_insns}k/" autogen/$src
 done
