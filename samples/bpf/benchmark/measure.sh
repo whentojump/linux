@@ -1,39 +1,39 @@
 #!/bin/bash
 
-prog_num=$( cat program_list.txt | wc -l )
+prog_num=$( cat program_name.txt | wc -l )
 
-for prog in $( cat program_list.txt )
+for prog_name in $( cat program_name.txt )
 do
-    echo $prog
-    ./user autogen/$prog
+    echo $prog_name
+    ./user autogen/$prog_name
 done
 
 echo
 echo "//////////////// Summary ///////////////"
 echo
-echo "Nominal (estimated) program size"
-echo "--------------------------------"
+echo "Nominal program size"
+echo "--------------------"
+echo "For now we are not really doing the calculation or estimation. So this is"
+echo "basically nonsense."
+echo "-------------------------------------------------------------------------"
 
-for prog in $( cat program_list.txt )
-do
-    sed -e 's/.o//' -e 's/kern_//' <<< $prog
-done
+cat program_size.txt
 
 echo
 echo "Real program size"
 echo "-----------------"
 
-for prog in $( cat program_list.txt )
+for prog_name in $( cat program_name.txt )
 do
-    llvm-objdump -d  autogen/$prog                                            |\
+    llvm-objdump -d  autogen/$prog_name                                       |\
         tail     -n  1                                                        |\
         cut      -d ':' -f 1                                                  |\
         tr       -d ' '
 done
 
 echo
-echo "Time"
-echo "----"
+echo "CPU cycles"
+echo "----------"
 
 dmesg                                                                         |\
     grep   't_delta'                                                          |\

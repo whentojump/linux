@@ -26,7 +26,7 @@ always-y := $(tprogs-y)
 #
 # BPF programs to build
 #
-always-y += $(addprefix benchmark/autogen/, $(shell cat $(BPF_SAMPLES_PATH)/benchmark/program_list.txt))
+always-y += $(addprefix benchmark/autogen/, $(shell cat $(BPF_SAMPLES_PATH)/benchmark/program_name.txt))
 
 ifeq ($(ARCH), arm)
 # Strip all except -D__LINUX_ARM_ARCH__ option needed to handle linux

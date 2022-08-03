@@ -1,39 +1,58 @@
 #!/bin/bash
 
+if (($# != 2))
+then
+    echo 
+    echo "Usage: $0 BASE_PROG BASE_WORKLOAD"
+    echo
+    exit
+fi
+
 base_prog_src_filename=$1
 base_workload_src_filename=$2
 
-rm autogen/workload_1k.c
+base_workload_c_insns=$( cat $base_workload_src_filename | wc -l )
 
-for i in $(seq 1000)
+#
+# Replicate by a larger step (1k lines of C code) for better I/O efficiency
+#
+
+rm -vf autogen/workload_1k_step.c
+
+replicate_time=$( bc <<< "1000 / $base_workload_c_insns" )
+
+for i in $( seq $replicate_time )
 do
-    cat $base_workload_src_filename >> autogen/workload_1k.c
+    cat $base_workload_src_filename >> autogen/workload_1k_step.c
 done
 
-for prog in $( cat program_list.txt )
-do
-    # Get the source filename
-    src=$( sed 's/.o/.c/' <<< $prog )
+IFS=$'\n'
 
-    # Extract program size information from filename
-    bpf_asm_kilo_insns=$( sed -e 's/^kern_//' -e 's/k.o$//' <<< $prog )
-    bpf_asm_insns=$( bc <<< "1000 * $bpf_asm_kilo_insns" )
-    # TODO estimate $c_insns from $bpf_asm_insns
+for line in $( paste program_name.txt program_size.txt )
+do
+    prog_name=$( cut -f 1 <<< $line )
+    prog_size=$( cut -f 2 <<< $line )
+
+    # Get the source filename
+    src_name=$( sed 's/.o/.c/' <<< $prog_name )
+
+    # Calculate how many times the base workload should get replicated
+    bpf_asm_insns=$prog_size
+    # TODO calculate $c_insns from $bpf_asm_insns
     c_insns=$bpf_asm_insns
-    c_kilo_insns=$( bc <<< "$c_insns / 1000" )
+    replicate_time=$( bc <<< "$c_insns / 1000" )
 
     # Generate source files
-    echo "Generating autogen/$src"
-    cp $base_prog_src_filename autogen/$src
+    echo "Generating autogen/$src_name"
+    cp $base_prog_src_filename autogen/$src_name
     # The variable-length part is wrapped with an `#include' directive.
     # Change the included filename accordingly.
-    sed -i "s/workload_base/workload_${bpf_asm_kilo_insns}k/" autogen/$src
-    # TODO Temporarily cheat this, just in order to compile
-    echo "Generating autogen/workload_${bpf_asm_kilo_insns}k.c"
-    for i in $(seq $c_kilo_insns)
+    sed -i "s/workload_base/workload_${replicate_time}k/" autogen/$src_name
+    # Now handle the included part, i.e. workload
+    rm -vf autogen/workload_${replicate_time}k.c
+    echo "Generating autogen/workload_${replicate_time}k.c"
+    for i in $( seq $replicate_time )
     do
-        cat autogen/workload_1k.c >> autogen/workload_${bpf_asm_kilo_insns}k.c
+        cat autogen/workload_1k_step.c >> autogen/workload_${replicate_time}k.c
     done
 done
-
-rm autogen/workload_1k.c
