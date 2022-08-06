@@ -1,2 +1,4 @@
 kern_*.c
 workload_*.c
+program_name.txt
+program_size.txt
