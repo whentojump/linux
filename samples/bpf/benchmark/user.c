@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 		printf("                                                        \n");
 		printf("Please provide the filename of BPF program. For example:\n");
 		printf("                                                        \n");
-		printf("  %s autogen/kern_100k.o\n", argv[0]);
+		printf("  %s autogen/kern_01.o\n", argv[0]);
 		printf("                                                        \n");
 		return -1;
 	}
