@@ -2,21 +2,37 @@
 
 prompt() {
     echo
-    echo "Usage: $0"
+    echo "Usage: use default size (seq 100000 100000 1000000)"
+    echo
+    echo "       $0"
+    echo
+    echo "       the script also accepts argument(s) in the same format as seq(1)"
+    echo
     echo "       $0 LAST"
     echo "       $0 FIRST LAST"
     echo "       $0 FIRST INCREMENT LAST"
     echo
+    echo "       remove generated files"
+    echo
+    echo "       $0 clean"
+    echo
     exit
 }
 
-if (( $# == 0 ))
+if (( $# == 1 )) && [[ $1 == clean ]]
 then
-    seq 100000 100000 1000000 > autogen/program_size.txt
-    echo "No custom program size specified. Use the default:"
+    rm -vf autogen/program_size.txt autogen/program_name.txt
+    exit
 else
-    seq $@ 1> autogen/program_size.txt 2> /dev/null || prompt
-    echo "Custom program size specified:"
+    if (( $# == 0 ))
+    then
+        seq 100000 100000 1000000 > autogen/program_size.txt
+        echo "No custom program size specified. Use the default:"
+    else
+        seq $@ 1> /dev/null 2> /dev/null || prompt # check if arguments are valid
+        seq $@ > autogen/program_size.txt
+        echo "Custom program size specified:"
+    fi
 fi
 
 cat autogen/program_size.txt
