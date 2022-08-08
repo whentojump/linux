@@ -7,14 +7,22 @@ The following instructions assume directory hierarchy of `~/inner_unikernels/` a
 # ...
 
 # Build the benchmark programs
+
 cd ~/linux/samples/bpf/benchmark
-make clean; make # Took too long? See the next section.
+# This script creates autogen/program_name.txt and autogen/program_size.txt.
+# See the next section for instructions for customization.
+./generate_prog_list.sh
+# Build the user program and BPF programs.
+# Took too long? See the next section.
+make clean; make
 
 # Boot the VM
+
 cd ~/linux
 ~/inner_unikernels/q-script/yifei-q
 
 # Inside the guest, run the tests.
+
 cd ~/linux/samples/bpf/benchmark/
 ./measure.sh
 ```
@@ -82,41 +90,54 @@ Plot of the results:
 
 ![plog.png](plot.png)
 
-## What if it took too long to build the benchmark
+If it took too long to build the BPF programs, you have two options:
 
-One can also test their desired portion within the whole segment, with custom range, granularity and number of samples. This is achieved by changing `program_name.txt` and `program_size.txt` before actually building them. For example:
+1. Test with programs of smaller size
+2. Use prebuilt object files
+
+## Customize the BPF programs under test
+
+One can test their desired portion within the whole segment, with custom range, granularity and number of samples. This is achieved by providing extra arguments to `./generate_prog_list.sh`, which inturn will change `autogen/program_name.txt` and `autogen/program_size.txt` before actually building the programs.
+
+Usage:
+
+```
+Usage: use default size (seq 100000 100000 1000000)
+
+       ./generate_prog_list.sh
+
+       the script also accepts argument(s) in the same format as seq(1)
+
+       ./generate_prog_list.sh LAST
+       ./generate_prog_list.sh FIRST LAST
+       ./generate_prog_list.sh FIRST INCREMENT LAST
+
+       remove generated files
+
+       ./generate_prog_list.sh clean
+```
+
+For example:
 
 To draw the first 1/10 of the upper limit:
 
 ```shell
-seq 1000 1000 10000 > program_size.txt
+./generate_prog_list.sh 1000 1000 10000
 ```
 
 To include totally 20 samples:
 
 ```shell
-seq 1000 1000 20000 > program_size.txt
-# Always run the following after the number of samples has been changed, to sync the two files.
-rm -vf program_name.txt
-for i in $( seq $( cat program_size.txt | wc -l ) )
-do
-    printf "kern_%02d.o\n" $i >> program_name.txt
-done
+./generate_prog_list.sh 1000 1000 20000
 ```
 
 To revert to the default:
 
 ```shell
-seq 100000 100000 1000000 > program_size.txt
-# Always run the following after the number of samples has been changed, to sync the two files.
-rm -vf program_name.txt
-for i in $( seq $( cat program_size.txt | wc -l ) )
-do
-    printf "kern_%02d.o\n" $i >> program_name.txt
-done
+./generate_prog_list.sh 100000 100000 1000000
 ```
 
-Or they can use prebuilt object files:
+## Use prebuilt object files
 
 ```shell
 cd ~/linux/samples/bpf/benchmark/
@@ -127,9 +148,5 @@ tar zxvf bpf_without_tail_call.tar.gz
 cp bpf_without_tail_call/* ~/linux/samples/bpf/benchmark/autogen
 rm -r bpf_without_tail_call bpf_without_tail_call.tar.gz
 
-# Skip compiling BPF programs and only compile the user program
-mv program_name.txt program_name.txt.disable
-make
-# Restore the file for being used during measurement
-mv program_name.txt.disable program_name.txt
+make use_prebuilt_object_files
 ```
