@@ -20,32 +20,6 @@ base_workload_src_filename=$2
 base_workload_c_insns=$( cat $base_workload_src_filename | wc -l )
 
 #
-# Generate program_size.txt (if needed), and generate program_name.txt
-#
-
-if [[ -e autogen/program_size.txt ]]
-then
-    echo "Custom program size specified:"
-else
-    echo "No custom program size specified. Use the default:"
-    seq 100000 100000 1000000 > autogen/program_size.txt
-fi
-
-cat autogen/program_size.txt
-
-echo "Source for these BPF programs will be generated:"
-
-# Remove the file of previous builds
-rm -f autogen/program_name.txt
-
-for i in $( seq $( cat autogen/program_size.txt | wc -l ) )
-do
-    printf "kern_%02d.o\n" $i >> autogen/program_name.txt
-done
-
-cat autogen/program_name.txt
-
-#
 # Replicate by a larger step (0.1k lines of C code) for better I/O efficiency
 #
 
