@@ -29,6 +29,7 @@ always-y := $(tprogs-y)
 ifneq ($(USE_PREBUILT_OBJECT_FILES), yes)
 always-y += $(addprefix benchmark/autogen/, $(shell cat $(BPF_SAMPLES_PATH)/benchmark/autogen/program_name.txt))
 endif
+always-y += benchmark/kern_base_with_tail_call.o
 
 ifeq ($(ARCH), arm)
 # Strip all except -D__LINUX_ARM_ARCH__ option needed to handle linux
