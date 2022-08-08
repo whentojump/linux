@@ -6,16 +6,18 @@
 # variable lengths.
 #
 
-if (( $# != 2 ))
+if (( $# != 4 ))
 then
     echo
-    echo "Usage: $0 BASE_PROG_SRC BASE_WORKLOAD_SRC"
+    echo "Usage: $0 BASE_PROG_SRC BASE_WORKLOAD_SRC PROG_NAME_LIST PROG_SIZE_LIST"
     echo
     exit
 fi
 
 base_prog_src_filename=$1
 base_workload_src_filename=$2
+prog_name_list_filename=$3
+prog_size_list_filename=$4
 
 base_workload_c_insns=$( cat $base_workload_src_filename | wc -l )
 
@@ -41,7 +43,7 @@ IFS=$'\n'
 # Generate the source for BPF programs
 #
 
-for line in $( paste autogen/program_name.txt autogen/program_size.txt )
+for line in $( paste $prog_name_list_filename $prog_size_list_filename )
 do
     prog_name=$( cut -f 1 <<< $line )
     prog_size=$( cut -f 2 <<< $line )
