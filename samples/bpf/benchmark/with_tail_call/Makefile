@@ -37,5 +37,5 @@ clean:
 	rm -vf autogen/kern_*.c
 	rm -vf autogen/workload_*.c
 	rm -vf autogen/prog_def_*.c
-	$(MAKE) -C $(LINUX_SRC_TREE_ROOT) M=$(LINUX_SRC_TREE_BPF_SAMPLES) clean
+	$(MAKE) -C $(LINUX_SRC_TREE_ROOT) M=$(LINUX_SRC_TREE_BPF_SAMPLES) BENCHMARK=with_tail_call clean
 	@find $(LINUX_SRC_TREE_BPF_SAMPLES) -type f -name '*~' -delete
