@@ -102,6 +102,8 @@ One can test their desired portion within the whole segment, with custom range, 
 Usage:
 
 ```
+Specify the size of BPF programs to generate. Unit: number of BPF instructions.
+
 Usage: use default size (seq 100000 100000 1000000)
 
        ./generate_prog_list.sh
