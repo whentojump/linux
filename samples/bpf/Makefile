@@ -26,7 +26,7 @@ always-y := $(tprogs-y)
 #
 # BPF programs to build
 #
-ifneq ($(USE_PREBUILT_OBJECT_FILES), yes)
+ifeq ($(BUILD_PROG_LIST), yes)
 always-y += $(addprefix benchmark/autogen/, $(shell cat $(BPF_SAMPLES_PATH)/benchmark/autogen/program_name.txt))
 endif
 
