@@ -36,35 +36,7 @@ static void attach(void) {
 	bpf_program__attach_perf_event(prog, perf_event_fd);
 }
 
-/*
-	TODO
-	What is perf and trace exactly? Looks like tracepoint is a subset of
-	perf?
-
-	Why the hello examples on the Internet don't have the attach step?
-	because of older kernel versions?
-	
-	Why other examples specify syscall through SEC name of the BPF program?
-	while here we manually craft a perf_event_attr struct?
-
-	Kernel sample:
-	attach_perf_event(program_struct, perf_event_fd) which involves ioctl(),
-	there is also an attach() routine
-
-	IU example:
-	directly ioctl(perf_event_fd, prog_fd)
-*/
-
 // static void show(void) {
-// 	/* the kernel tree version */
-// 	/* somehow this is a one-shot print */
-// 	/* TODO what is the mechanism of trace_pipe "file"? */
-
-// 	// read_trace_pipe();
-
-// 	/* IU version */
-// 	/* this won't exit so the user program should be put into the bg */
-
 // 	int trace_pipe_fd;
 // 	char c;
 
@@ -93,9 +65,8 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	// TODO better error handling
-	obj = bpf_object__open_file(argv[1], NULL); // what will be loaded
-	prog = bpf_object__find_program_by_name(obj, PROG_NAME); // used in attach()
+	obj = bpf_object__open_file(argv[1], NULL);
+	prog = bpf_object__find_program_by_name(obj, PROG_NAME);
 	if (bpf_object__load(obj)) return 1;
 
 	attach();
