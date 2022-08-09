@@ -88,7 +88,7 @@ Plot of the results:
 
 (Unfortunately, we don't have scripts to automate this step. You have to copy the above columns into your favorite app like `*Office`, and draw the figure in app-dependent ways.)
 
-![plog.png](plot.png)
+![plot.png](plot.png)
 
 If it took too long to build the BPF programs, you have two options:
 
