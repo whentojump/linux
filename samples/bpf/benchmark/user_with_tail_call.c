@@ -1,0 +1,89 @@
+// SPDX-License-Identifier: GPL-2.0-only
+/* Copyright (c) 2016 Facebook
+ */
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <stdlib.h>
+#include <linux/perf_event.h>
+#include <bpf/libbpf.h>
+#include <bpf/bpf.h>
+#include <fcntl.h>
+#include "perf-sys.h"
+
+#define PROG_NAME "bpf_prog1"
+
+struct bpf_program *prog;
+
+static void attach(void) {
+	int trace_id_fd;
+	char config_str[256];
+	struct perf_event_attr p_attr;
+	int perf_event_fd;
+
+	trace_id_fd = openat(AT_FDCWD,
+		"/sys/kernel/debug/tracing/events/syscalls/sys_enter_dup/id", O_RDONLY);
+	if (read(trace_id_fd, config_str, 256) < 0)
+		/* error handling */;
+	close(trace_id_fd);
+
+	memset(&p_attr, 0, sizeof(p_attr));
+	p_attr.type = PERF_TYPE_TRACEPOINT;
+	p_attr.size = PERF_ATTR_SIZE_VER5;
+	p_attr.config = atoi(config_str);
+
+	perf_event_fd = sys_perf_event_open(&p_attr, -1, 0, -1, PERF_FLAG_FD_CLOEXEC);
+
+	bpf_program__attach_perf_event(prog, perf_event_fd);
+}
+
+// static void show(void) {
+// 	int trace_pipe_fd;
+// 	char c;
+
+// 	trace_pipe_fd = openat(AT_FDCWD,
+// 		"/sys/kernel/debug/tracing/trace_pipe", O_RDONLY);
+// 	for (;;) {
+// 		if (read(trace_pipe_fd, &c, 1) == 1)
+// 		putchar(c);
+// 	}
+// }
+
+static void trigger(void) {
+	syscall(__NR_dup, 1);
+}
+
+int main(int argc, char **argv)
+{
+	struct bpf_object *obj = NULL;
+	int map_fd, prog_fd;
+	const char *prog_name;
+	int key;
+
+	if (argc != 2) {
+		printf("                                                        \n");
+		printf("Please provide the filename of BPF program. For example:\n");
+		printf("                                                        \n");
+		printf("  %s autogen/kern_01.o\n", argv[0]);
+		printf("                                                        \n");
+		return -1;
+	}
+
+	obj = bpf_object__open_file(argv[1], NULL);
+	prog = bpf_object__find_program_by_name(obj, PROG_NAME);
+	if (bpf_object__load(obj)) return 1;
+
+	attach();
+
+	map_fd = bpf_object__find_map_fd_by_name(obj, "progs");
+	bpf_object__for_each_program(prog, obj) {
+		prog_fd = bpf_program__fd(prog);
+		prog_name = bpf_program__name(prog);
+		if (sscanf(prog_name, "bpf_prog%d", &key) != 1)
+			continue;
+		bpf_map_update_elem(map_fd, &key, &prog_fd, BPF_ANY);
+	}
+
+	trigger();
+	// show();
+}

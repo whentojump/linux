@@ -677,6 +677,10 @@ static __always_inline u32 bpf_prog_run(const struct bpf_prog *prog, const void 
 	printk(KERN_WARNING "t_start: %llu\n", t_start);
 	printk(KERN_WARNING "t_stop:  %llu\n", t_stop);
 	printk(KERN_WARNING "t_delta: %llu\n", t_stop-t_start);
+	// This is useful for examining where the program returns from. We'd
+	// like to know, for example, in a chain of tail calls, which of them
+	// "falls through".
+	printk(KERN_WARNING "ret:     %u\n",   ret);
 
 	return ret;
 }
