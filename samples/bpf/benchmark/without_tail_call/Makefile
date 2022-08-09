@@ -1,7 +1,7 @@
 CC = clang
 MAKE = make
 
-LINUX_SRC_TREE_ROOT = $(realpath $(CURDIR)/../../..)
+LINUX_SRC_TREE_ROOT = $(realpath $(CURDIR)/../../../..)
 LINUX_SRC_TREE_BPF_SAMPLES = $(realpath $(LINUX_SRC_TREE_ROOT)/samples/bpf)
 
 BPF_PROGS = $(addprefix autogen/, $(shell cat autogen/program_name.txt))
@@ -21,7 +21,8 @@ compile_bpf_samples: $(BPF_PROG_SRC_FILES)
 	$(MAKE) -C $(LINUX_SRC_TREE_ROOT)                                      \
 	        M=$(LINUX_SRC_TREE_BPF_SAMPLES)                                \
 	        BPF_SAMPLES_PATH=$(LINUX_SRC_TREE_BPF_SAMPLES)                 \
-	        BUILD_PROG_LIST=yes
+	        BENCHMARK=without_tail_call                                    \
+	        BUILD_KERN_PROG=yes
 
 # this recipe will only build the user program and skip compiling BPF programs
 use_prebuilt_object_files:
@@ -29,7 +30,8 @@ use_prebuilt_object_files:
 	$(MAKE) -C $(LINUX_SRC_TREE_ROOT)                                      \
 	        M=$(LINUX_SRC_TREE_BPF_SAMPLES)                                \
 	        BPF_SAMPLES_PATH=$(LINUX_SRC_TREE_BPF_SAMPLES)                 \
-	        BUILD_PROG_LIST=no
+	        BENCHMARK=without_tail_call                                    \
+	        BUILD_KERN_PROG=no
 
 clean:
 	rm -vf autogen/kern_*.c

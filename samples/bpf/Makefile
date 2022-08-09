@@ -3,11 +3,13 @@
 BPF_SAMPLES_PATH ?= $(abspath $(srctree)/$(src))
 TOOLS_PATH := $(BPF_SAMPLES_PATH)/../../tools
 
+BENCHMARK_REL_PATH = benchmark/$(BENCHMARK)
+BENCHMARK_ABS_PATH = $(realpath $(BPF_SAMPLES_PATH)/$(BENCHMARK_REL_PATH))
+
 #
 # User program to build
 #
-tprogs-y := benchmark/user
-tprogs-y += benchmark/user_with_tail_call
+tprogs-y := $(BENCHMARK_REL_PATH)/user
 
 # Libbpf dependencies
 LIBBPF = $(TOOLS_PATH)/lib/bpf/libbpf.a
@@ -19,8 +21,7 @@ XDP_SAMPLE := xdp_sample_user.o
 #
 # Dependency of the user program
 #
-user-objs := benchmark/user.o
-user_with_tail_call-objs := benchmark/user_with_tail_call.o
+user-objs := $(BENCHMARK_REL_PATH)/user.o
 
 # Tell kbuild to always build the programs
 always-y := $(tprogs-y)
@@ -28,10 +29,10 @@ always-y := $(tprogs-y)
 #
 # BPF programs to build
 #
-ifeq ($(BUILD_PROG_LIST), yes)
-always-y += $(addprefix benchmark/autogen/, $(shell cat $(BPF_SAMPLES_PATH)/benchmark/autogen/program_name.txt))
+ifeq ($(BUILD_KERN_PROG), yes)
+always-y += $(addprefix $(BENCHMARK_REL_PATH)/autogen/,                        \
+                        $(shell cat $(BENCHMARK_ABS_PATH)/autogen/program_name.txt))
 endif
-always-y += benchmark/kern_base_with_tail_call.o
 
 ifeq ($(ARCH), arm)
 # Strip all except -D__LINUX_ARM_ARCH__ option needed to handle linux
