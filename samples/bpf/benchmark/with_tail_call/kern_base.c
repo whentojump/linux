@@ -26,15 +26,6 @@ struct bpf_map_def SEC("maps") progs = {
 //      the program array. It then "falls through" and returns back to the
 //      caller in filter.h.
 
-#define PROG(X) SEC("tracepoint/syscalls/sys_enter_dup")                       \
-int bpf_prog ## X(void *ctx) {                                                 \
-	char msg[] = "ret = 0x%llx\n";                                         \
-	u64 ret;                                                               \
-	#include "workload_one_call.c"                                         \
-	bpf_tail_call(ctx, &progs, X+1);                                       \
-	return 0;                                                              \
-}
+#include "prog_def_base.c"
 
 char _license[] SEC("license") = "GPL";
-
-#include "prog_def.c"
