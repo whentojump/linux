@@ -7,6 +7,7 @@ TOOLS_PATH := $(BPF_SAMPLES_PATH)/../../tools
 # User program to build
 #
 tprogs-y := benchmark/user
+tprogs-y += benchmark/user_with_tail_call
 
 # Libbpf dependencies
 LIBBPF = $(TOOLS_PATH)/lib/bpf/libbpf.a
@@ -19,6 +20,7 @@ XDP_SAMPLE := xdp_sample_user.o
 # Dependency of the user program
 #
 user-objs := benchmark/user.o
+user_with_tail_call-objs := benchmark/user_with_tail_call.o
 
 # Tell kbuild to always build the programs
 always-y := $(tprogs-y)
