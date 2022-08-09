@@ -9,7 +9,9 @@ BENCHMARK_ABS_PATH = $(realpath $(BPF_SAMPLES_PATH)/$(BENCHMARK_REL_PATH))
 #
 # User program to build
 #
+ifneq ($(BENCHMARK),)
 tprogs-y := $(BENCHMARK_REL_PATH)/user
+endif
 
 # Libbpf dependencies
 LIBBPF = $(TOOLS_PATH)/lib/bpf/libbpf.a
@@ -21,7 +23,9 @@ XDP_SAMPLE := xdp_sample_user.o
 #
 # Dependency of the user program
 #
+ifneq ($(BENCHMARK),)
 user-objs := $(BENCHMARK_REL_PATH)/user.o
+endif
 
 # Tell kbuild to always build the programs
 always-y := $(tprogs-y)
@@ -29,9 +33,11 @@ always-y := $(tprogs-y)
 #
 # BPF programs to build
 #
+ifneq ($(BENCHMARK),)
 ifeq ($(BUILD_KERN_PROG), yes)
 always-y += $(addprefix $(BENCHMARK_REL_PATH)/autogen/,                        \
                         $(shell cat $(BENCHMARK_ABS_PATH)/autogen/program_name.txt))
+endif
 endif
 
 ifeq ($(ARCH), arm)
