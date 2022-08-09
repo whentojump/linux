@@ -70,15 +70,15 @@ do
     prog_size=$( cut -f 2 <<< $line )
 
     # Get the source filename
-    prog_src_filename=$( sed 's/.o/.c/' <<< $prog_name )
+    kern_prog_src_filename=$( sed 's/.o/.c/' <<< $prog_name )
 
     # Generate source files
-    echo "Generating autogen/$prog_src_filename"
-    cp $base_kern_prog_src_filename autogen/$prog_src_filename
+    echo "Generating autogen/$kern_prog_src_filename"
+    cp $base_kern_prog_src_filename autogen/$kern_prog_src_filename
     # The variable-length part is wrapped with an `#include' directive.
     # Change the included filename accordingly.
     prog_def_src_filename="prog_def_${prog_size}.c"
-    sed -i "s/$base_prog_def_src_filename/$prog_def_src_filename/" autogen/$prog_src_filename
+    sed -i "s/$base_prog_def_src_filename/$prog_def_src_filename/" autogen/$kern_prog_src_filename
     # Now handle the included part, i.e. program definition.
     # Remove the file of previous builds.
     rm -f autogen/$prog_def_src_filename
