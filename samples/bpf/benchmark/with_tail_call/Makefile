@@ -13,7 +13,7 @@ all: compile_bpf_samples
 
 $(BPF_PROG_SRC_FILES): generate_program_source ;
 
-generate_program_source: kern_base.c workload_base.c autogen/program_name.txt autogen/program_size.txt
+generate_program_source: kern_base.c workload_base.c prog_def_base.c autogen/program_name.txt autogen/program_size.txt
 	./generate_prog_src.sh $^
 
 # "call" into the Makefile of source tree root
@@ -21,7 +21,7 @@ compile_bpf_samples: $(BPF_PROG_SRC_FILES)
 	$(MAKE) -C $(LINUX_SRC_TREE_ROOT)                                      \
 	        M=$(LINUX_SRC_TREE_BPF_SAMPLES)                                \
 	        BPF_SAMPLES_PATH=$(LINUX_SRC_TREE_BPF_SAMPLES)                 \
-	        BENCHMARK=without_tail_call                                    \
+	        BENCHMARK=with_tail_call                                       \
 	        BUILD_KERN_PROG=yes
 
 # this recipe will only build the user program and skip compiling BPF programs
@@ -30,11 +30,12 @@ use_prebuilt_object_files:
 	$(MAKE) -C $(LINUX_SRC_TREE_ROOT)                                      \
 	        M=$(LINUX_SRC_TREE_BPF_SAMPLES)                                \
 	        BPF_SAMPLES_PATH=$(LINUX_SRC_TREE_BPF_SAMPLES)                 \
-	        BENCHMARK=without_tail_call                                    \
+	        BENCHMARK=with_tail_call                                       \
 	        BUILD_KERN_PROG=no
 
 clean:
 	rm -vf autogen/kern_*.c
 	rm -vf autogen/workload_*.c
+	rm -vf autogen/prog_def_*.c
 	$(MAKE) -C $(LINUX_SRC_TREE_ROOT) M=$(LINUX_SRC_TREE_BPF_SAMPLES) clean
 	@find $(LINUX_SRC_TREE_BPF_SAMPLES) -type f -name '*~' -delete
