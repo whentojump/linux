@@ -10,12 +10,30 @@ struct bpf_map_def SEC("maps") progs = {
 	.max_entries = 34,
 };
 
-// TODO program type, entry prototype
-// TODO how does this end?
-#define PROG(X) SEC("tracepoint/syscalls/sys_enter_dup")                                          \
+// TODO Program type, entry prototype
+//
+//      Looks for tail calls to work, we will have to load *all* the programs,
+//      populate fd's into the map, and *only* attach and trigger the first
+//      program.
+//
+//      Btw, what is section name used for? We have been manually attaching
+//      programs to perf events, which involve trace id of syscalls. Section
+//      name is used by libbpf etc to automatically infer such things?
+
+// TODO How does this end?
+//
+//      The last program attempts to issue a tail call that does not exist in
+//      the program array. It then "falls through" and returns back to the
+//      caller in filter.h.
+
+#define PROG(X) SEC("tracepoint/syscalls/sys_enter_dup")                       \
 int bpf_prog ## X(void *ctx) {                                                 \
+	char msg1[] = "tail call -- bpf_prog%d               \n";              \
+	char msg2[] = "tail call -- bpf_prog%d (fall through)\n";              \
+	bpf_trace_printk(msg1, sizeof(msg1), X);                               \
 	bpf_tail_call(ctx, &progs, X+1);                                       \
-	return 0;                                                              \
+	bpf_trace_printk(msg2, sizeof(msg2), X);                               \
+	return 1000+X;                                                         \
 }
 
 char _license[] SEC("license") = "GPL";
