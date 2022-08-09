@@ -8,7 +8,7 @@ The following instructions assume directory hierarchy of `~/inner_unikernels/` a
 
 # Build the benchmark programs
 
-cd ~/linux/samples/bpf/benchmark
+cd ~/linux/samples/bpf/benchmark/without_tail_call/
 # This script creates autogen/program_name.txt and autogen/program_size.txt.
 # See the next section for instructions for customization.
 ./generate_prog_list.sh
@@ -18,12 +18,12 @@ make clean; make
 
 # Boot the VM
 
-cd ~/linux
+cd ~/linux/
 ~/inner_unikernels/q-script/yifei-q
 
 # Inside the guest, run the tests.
 
-cd ~/linux/samples/bpf/benchmark/
+cd ~/linux/samples/bpf/benchmark/without_tail_call/
 ./measure.sh
 ```
 
@@ -140,12 +140,12 @@ To revert to the default:
 ## Use prebuilt object files
 
 ```shell
-cd ~/linux/samples/bpf/benchmark/
+cd ~/linux/samples/bpf/benchmark/without_tail_call/
 make clean
 
 wget https://github.com/whentojump/linux/releases/download/dummy/bpf_without_tail_call.tar.gz
 tar zxvf bpf_without_tail_call.tar.gz
-cp bpf_without_tail_call/* ~/linux/samples/bpf/benchmark/autogen
+cp bpf_without_tail_call/* autogen/
 rm -r bpf_without_tail_call bpf_without_tail_call.tar.gz
 
 make use_prebuilt_object_files
