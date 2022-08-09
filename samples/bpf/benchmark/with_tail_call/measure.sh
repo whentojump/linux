@@ -23,12 +23,19 @@ if [[ $any_failure == yes ]]; then
 fi
 
 echo
-echo "Nominal program size"
-echo "===================="
+echo "Number of BPF instructions per call (nominal)"
+echo "============================================="
 echo "By \"nominal\", we mean we start from this value, estimate how many lines"
 echo "of C code there should be, and then generate the program. The obtained"
 echo "BPF assembly may have a slightly different size."
 echo "-------------------------------------------------------------------------"
+
+# TODO make it adjustable
+echo 100000
+
+echo
+echo "Number of tail calls"
+echo "===================="
 
 cat autogen/program_size.txt
 
@@ -46,6 +53,9 @@ do
         cut      -d ':' -f 1                                                  |\
         tr       -d ' '
 done
+
+# TODO
+# what should we use as X coordinate?
 
 echo
 echo "CPU cycles"
