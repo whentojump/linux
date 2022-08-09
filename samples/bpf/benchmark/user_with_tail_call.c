@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <linux/perf_event.h>
 #include <bpf/libbpf.h>
+#include <bpf/bpf.h>
 #include <fcntl.h>
 #include "perf-sys.h"
 
@@ -55,6 +56,9 @@ static void trigger(void) {
 int main(int argc, char **argv)
 {
 	struct bpf_object *obj = NULL;
+	int map_fd, prog_fd;
+	const char *prog_name;
+	int key;
 
 	if (argc != 2) {
 		printf("                                                        \n");
@@ -70,6 +74,16 @@ int main(int argc, char **argv)
 	if (bpf_object__load(obj)) return 1;
 
 	attach();
+
+	map_fd = bpf_object__find_map_fd_by_name(obj, "progs");
+	bpf_object__for_each_program(prog, obj) {
+		prog_fd = bpf_program__fd(prog);
+		prog_name = bpf_program__name(prog);
+		if (sscanf(prog_name, "bpf_prog%d", &key) != 1)
+			continue;
+		bpf_map_update_elem(map_fd, &key, &prog_fd, BPF_ANY);
+	}
+
 	trigger();
 	// show();
 }
