@@ -20,7 +20,8 @@ generate_program_source: kern_base.c workload_base.c autogen/program_name.txt au
 compile_bpf_samples: $(BPF_PROG_SRC_FILES)
 	$(MAKE) -C $(LINUX_SRC_TREE_ROOT)                                      \
 	        M=$(LINUX_SRC_TREE_BPF_SAMPLES)                                \
-	        BPF_SAMPLES_PATH=$(LINUX_SRC_TREE_BPF_SAMPLES)
+	        BPF_SAMPLES_PATH=$(LINUX_SRC_TREE_BPF_SAMPLES)                 \
+	        BUILD_PROG_LIST=yes
 
 # this recipe will only build the user program and skip compiling BPF programs
 use_prebuilt_object_files:
@@ -28,7 +29,7 @@ use_prebuilt_object_files:
 	$(MAKE) -C $(LINUX_SRC_TREE_ROOT)                                      \
 	        M=$(LINUX_SRC_TREE_BPF_SAMPLES)                                \
 	        BPF_SAMPLES_PATH=$(LINUX_SRC_TREE_BPF_SAMPLES)                 \
-	        USE_PREBUILT_OBJECT_FILES=yes
+	        BUILD_PROG_LIST=no
 
 clean:
 	rm -vf autogen/kern_*.c
