@@ -2,7 +2,9 @@
 
 prompt() {
     echo
-    echo "Usage: use default size (seq 100000 100000 1000000)"
+    echo "Specify the size of BPF programs to generate. Unit: number of tail calls."
+    echo
+    echo "Usage: use default size (seq 20)"
     echo
     echo "       $0"
     echo
@@ -26,7 +28,7 @@ then
 else
     if (( $# == 0 ))
     then
-        seq 100000 100000 1000000 > autogen/program_size.txt
+        seq 20 > autogen/program_size.txt
         echo "No custom program size specified. Use the default:"
     else
         seq $@ 1> /dev/null 2> /dev/null || prompt # check if arguments are valid
