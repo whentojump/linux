@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #
-# Pass the filename of base program source and base workload source via command
-# line arguments. Based on them this script will generate BPF program source of
-# variable lengths.
+# Pass the filename of base program source, base workload source and program
+# listvia command line arguments. Based on them this script will generate BPF
+# program source of variable lengths.
 #
 
 if (( $# != 4 ))
