@@ -8,7 +8,7 @@ The following instructions assume directory hierarchy of `~/inner_unikernels/` a
 
 # Build the benchmark programs
 
-cd ~/linux/samples/bpf/benchmark/without_tail_call/
+cd ~/linux/samples/bpf/benchmark/with_tail_call/
 # This script creates autogen/program_name.txt and autogen/program_size.txt.
 # See the next section for instructions for customization.
 ./generate_prog_list.sh
@@ -23,7 +23,7 @@ cd ~/linux/
 
 # Inside the guest, run the tests.
 
-cd ~/linux/samples/bpf/benchmark/without_tail_call/
+cd ~/linux/samples/bpf/benchmark/with_tail_call/
 ./measure.sh
 ```
 
@@ -32,63 +32,92 @@ Example output:
 ```
 //////////////////////////// Summary ///////////////////////////
 
-!!!WARNING!!!
-Looks one or more of the programs have failed, possibly because of
-the limit of BPF program size. This script does NOT yet handle such
-cases well, and please treat the following report carefully. Some
-manual adjustments might be needed.
-
-Nominal program size
-====================
+Number of BPF instructions per call (nominal)
+=============================================
 By "nominal", we mean we start from this value, estimate how many lines
 of C code there should be, and then generate the program. The obtained
 BPF assembly may have a slightly different size.
 -------------------------------------------------------------------------
 100000
-200000
-300000
-400000
-500000
-600000
-700000
-800000
-900000
-1000000
+
+Number of tail calls
+====================
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
 
 Real program size
 =================
 By "real", we mean this is the actual size of obtained BPF programs,
 measured through tools like `llvm-objdump' and `bpftool'.
 -------------------------------------------------------------------------
-100010
-200010
-300010
-400010
-500010
-600010
-700010
-800010
-900010
-1000010
+100016
+200033
+300050
+400067
+500084
+600101
+700118
+800135
+900152
+1000169
+1100186
+1200203
+1300220
+1400237
+1500254
+1600271
+1700288
+1800305
+1900322
+2000339
 
 CPU cycles
 ==========
-6597257
-12860277
-19231489
-26073031
-32173381
-38274114
-46606346
-51249508
-58847190
+6434634
+12855267
+19350063
+26914191
+33420843
+40485625
+45592212
+51328694
+58693333
+64255254
+70788572
+77865488
+83683126
+90491380
+97011499
+104181253
+110664174
+120470599
+126389125
+129187423
 ```
 
 Plot of the results:
 
 (Unfortunately, we don't have scripts to automate this step. You have to copy the above columns into your favorite app like `*Office`, and draw the figure in app-dependent ways.)
 
-![plog.png](plot.png)
+![plot.png](plot.png)
 
 If it took too long to build the BPF programs, you have two options:
 
@@ -97,12 +126,14 @@ If it took too long to build the BPF programs, you have two options:
 
 ## Customize the BPF programs under test
 
-One can test their desired portion within the whole segment, with custom range, granularity and number of samples. This is achieved by providing extra arguments to `./generate_prog_list.sh`, which inturn will change `autogen/program_name.txt` and `autogen/program_size.txt` before actually building the programs.
+One can test their desired portion within the whole segment, with custom range, granularity (TODO) and number of samples. This is achieved by providing extra arguments to `./generate_prog_list.sh`, which inturn will change `autogen/program_name.txt` and `autogen/program_size.txt` before actually building the programs.
 
 Usage:
 
 ```
-Usage: use default size (seq 100000 100000 1000000)
+Specify the size of BPF programs to generate. Unit: number of tail calls.
+
+Usage: use default size (seq 20)
 
        ./generate_prog_list.sh
 
@@ -119,11 +150,15 @@ Usage: use default size (seq 100000 100000 1000000)
 
 For example:
 
-To draw the first 1/10 of the upper limit:
+To draw the first 10 samples:
 
 ```shell
-./generate_prog_list.sh 1000 1000 10000
+./generate_prog_list.sh 10
 ```
+
+<!--
+
+TODO make the workload of one single call adjustable
 
 To include totally 20 samples:
 
@@ -137,16 +172,18 @@ To revert to the default:
 ./generate_prog_list.sh 100000 100000 1000000
 ```
 
+-->
+
 ## Use prebuilt object files
 
 ```shell
-cd ~/linux/samples/bpf/benchmark/without_tail_call/
+cd ~/linux/samples/bpf/benchmark/with_tail_call/
 make clean
 
-wget https://github.com/whentojump/linux/releases/download/dummy/bpf_without_tail_call.tar.gz
-tar zxvf bpf_without_tail_call.tar.gz
-cp bpf_without_tail_call/* autogen/
-rm -r bpf_without_tail_call bpf_without_tail_call.tar.gz
+wget https://github.com/whentojump/linux/releases/download/dummy/bpf_with_tail_call.tar.gz
+tar zxvf bpf_with_tail_call.tar.gz
+cp bpf_with_tail_call/* autogen/
+rm -r bpf_with_tail_call bpf_with_tail_call.tar.gz
 
 make use_prebuilt_object_files
 ```
