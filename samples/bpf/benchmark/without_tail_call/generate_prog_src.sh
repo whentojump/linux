@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #
-# Pass the filename of base program source and base workload source via command
-# line arguments. Based on them this script will generate BPF program source of
-# variable lengths.
+# Pass the filename of base program source, base workload source and program
+# listvia command line arguments. Based on them this script will generate BPF
+# program source of variable lengths.
 #
 
 if (( $# != 4 ))
@@ -65,7 +65,7 @@ do
     cp $base_prog_src_filename autogen/$prog_src_filename
     # The variable-length part is wrapped with an `#include' directive.
     # Change the included filename accordingly.
-    sed -i "s/workload_base.c/$workload_src_filename/" autogen/$prog_src_filename
+    sed -i "s/$base_workload_src_filename/$workload_src_filename/" autogen/$prog_src_filename
     # Now handle the included part, i.e. workload.
     # Remove the file of previous builds.
     rm -f autogen/$workload_src_filename

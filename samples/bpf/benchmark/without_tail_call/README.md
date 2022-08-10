@@ -88,7 +88,7 @@ Plot of the results:
 
 (Unfortunately, we don't have scripts to automate this step. You have to copy the above columns into your favorite app like `*Office`, and draw the figure in app-dependent ways.)
 
-![plog.png](plot.png)
+![plot.png](plot.png)
 
 If it took too long to build the BPF programs, you have two options:
 
@@ -102,6 +102,8 @@ One can test their desired portion within the whole segment, with custom range, 
 Usage:
 
 ```
+Specify the size of BPF programs to generate. Unit: number of BPF instructions.
+
 Usage: use default size (seq 100000 100000 1000000)
 
        ./generate_prog_list.sh
