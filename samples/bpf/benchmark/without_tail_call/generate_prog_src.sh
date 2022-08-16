@@ -2,7 +2,7 @@
 
 #
 # Pass the filename of base program source, base workload source and program
-# listvia command line arguments. Based on them this script will generate BPF
+# list via command line arguments. Based on them this script will generate BPF
 # program source of variable lengths.
 #
 
