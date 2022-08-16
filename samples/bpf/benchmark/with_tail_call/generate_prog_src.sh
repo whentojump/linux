@@ -1,9 +1,10 @@
 #!/bin/bash
 
 #
-# Pass the filename of base program source, base workload source and program
-# list via command line arguments. Based on them this script will generate BPF
-# program source of variable number of tail call(s).
+# Pass the filename of base program source, base workload source, base program
+# definition snippet and program list via command line arguments. Based on them
+# this script will generate BPF program source of variable number of tail
+# call(s).
 #
 
 if (( $# != 5 ))
