@@ -2964,8 +2964,8 @@ static int bpf_prog_load_iu_base(union bpf_attr *attr, bpfptr_t uattr)
 		total_vm += vm_size[ph_i];
 	}
 
-	if (e_end != total_vm)
-		goto error_phdr;
+	// if (e_end != total_vm)
+	// 	goto error_phdr;
 
 	mem = __vmalloc(total_vm, GFP_KERNEL_ACCOUNT | __GFP_ZERO | GFP_USER);
 	if (!mem) {
