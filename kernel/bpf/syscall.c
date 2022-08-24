@@ -3007,8 +3007,20 @@ static int bpf_prog_load_iu_base(union bpf_attr *attr, bpfptr_t uattr)
 			goto error_vm;
 		}
 
-		memcpy(mem + offset + sec_off[ph_i], readbuf, p_filesz);
-		memset(mem + offset + p_filesz, 0, p_memsz - p_filesz);
+		// The general case shoud be:
+		//
+		//  |--zeros--|---segment----|--zeros--|
+		//   0000 0000 xxxx xxxx xxxx 0000 0000
+		//   |         |              |
+		//   |         |              mem + offset + sec_off[ph_i] + p_filesz
+		//   |         |
+		//   |         mem + offset + sec_off[ph_i]
+		//   |
+		//   mem + offset
+		//
+		memcpy(mem + offset + sec_off[ph_i],            readbuf, p_filesz          );
+		memset(mem + offset + sec_off[ph_i] + p_filesz, 0,       p_memsz - p_filesz);
+
 
 		// Set correct permission
 		page_cnt = (vm_size[ph_i] >> PAGE_SHIFT);
