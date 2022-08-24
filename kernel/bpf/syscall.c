@@ -2684,7 +2684,7 @@ static int bpf_prog_load_iu_base(union bpf_attr *attr, bpfptr_t uattr)
 	Elf64_Half ph_i;
 	u64 addr_start = 0;
 	int *vm_size = NULL, *sec_off = NULL;
-	int total_vm = 0, offset, total_page = 0;
+	int total_vm = 0, offset, total_page = 0; // (TBD) Will `int' be enough in the future?
 
 	if (CHECK_ATTR(BPF_PROG_LOAD))
 		return -EINVAL;
@@ -2975,6 +2975,10 @@ static int bpf_prog_load_iu_base(union bpf_attr *attr, bpfptr_t uattr)
 	prog->mem.mem = mem;
 	addr_start = (u64)mem;
 
+	// (TBD)
+	// If the segments are *not* contiguous, need we make them uncontiguous here too?
+	// In other words, do we expect exactly the same memory layout as specified in the ELF?
+	// (Currently this FOR loop doesn't behave like that and will suppress any blank page in the middle)
 	for (ph_i = 0, offset = 0; ph_i < ehdr->e_phnum; ph_i++) {
 		Elf64_Xword p_filesz = phdr[ph_i].p_filesz;
 		Elf64_Xword p_memsz = phdr[ph_i].p_memsz;
