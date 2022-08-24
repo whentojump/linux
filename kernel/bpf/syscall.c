@@ -2917,12 +2917,12 @@ static int bpf_prog_load_iu_base(union bpf_attr *attr, bpfptr_t uattr)
 		/*
 		 * Verify p_vaddr + p_filesz is within range.
 		 */
-		if (p_vaddr >= MAX_PROG_SZ)
-			goto error_phdr;
+		// if (p_vaddr >= MAX_PROG_SZ)
+		// 	goto error_phdr;
 		if (check_add_overflow(p_vaddr, p_filesz, &temp))
 			goto error_phdr;
-		if (temp > MAX_PROG_SZ)
-			goto error_phdr;
+		// if (temp > MAX_PROG_SZ)
+		// 	goto error_phdr;
 
 		/*
 		 * Compute p_vaddr_end = p_vaddr + p_memsz, aligned up to requested
@@ -2934,8 +2934,8 @@ static int bpf_prog_load_iu_base(union bpf_attr *attr, bpfptr_t uattr)
 			goto error_phdr;
 		if (align_up(p_vaddr_end, p_align, &p_vaddr_end))
 			goto error_phdr;
-		if (p_vaddr_end > MAX_PROG_SZ)
-			goto error_phdr;
+		// if (p_vaddr_end > MAX_PROG_SZ)
+		// 	goto error_phdr;
 
 		/* Enforce 4k alignment for now */
 		if (p_align != 1UL << PAGE_SHIFT)
