@@ -2681,6 +2681,7 @@ static int bpf_prog_load_iu_base(union bpf_attr *attr, bpfptr_t uattr)
 	struct file *filp;
 	size_t ph_size;
 	Elf64_Addr plast_vaddr = 0;
+	Elf64_Addr plast_vaddr_end = 0;
 	Elf64_Half ph_i;
 	u64 addr_start = 0;
 	int *vm_size = NULL, *sec_off = NULL;
@@ -2906,6 +2907,7 @@ static int bpf_prog_load_iu_base(union bpf_attr *attr, bpfptr_t uattr)
 		 */
 		if (align_down(p_vaddr, p_align, &p_vaddr_start))
 			goto error_phdr;
+		p_vaddr_start = plast_vaddr_end;
 
 		/*
 		 * Disallow overlapping segments. This may be overkill, but in practice
@@ -2960,6 +2962,7 @@ static int bpf_prog_load_iu_base(union bpf_attr *attr, bpfptr_t uattr)
 			goto error_phdr;
 
 		vm_size[ph_i] = round_up(p_vaddr_end - p_vaddr_start, p_align);
+		plast_vaddr_end = p_vaddr_end;
 		sec_off[ph_i] = p_vaddr - p_vaddr_start;
 		total_vm += vm_size[ph_i];
 	}
@@ -2975,10 +2978,8 @@ static int bpf_prog_load_iu_base(union bpf_attr *attr, bpfptr_t uattr)
 	prog->mem.mem = mem;
 	addr_start = (u64)mem;
 
-	// (TBD)
-	// If the segments are *not* contiguous, need we make them uncontiguous here too?
+	// If the segments are *not* contiguous, need we make them so here too?
 	// In other words, do we expect exactly the same memory layout as specified in the ELF?
-	// (Currently this FOR loop doesn't behave like that and will suppress any blank page in the middle)
 	for (ph_i = 0, offset = 0; ph_i < ehdr->e_phnum; ph_i++) {
 		Elf64_Xword p_filesz = phdr[ph_i].p_filesz;
 		Elf64_Xword p_memsz = phdr[ph_i].p_memsz;
