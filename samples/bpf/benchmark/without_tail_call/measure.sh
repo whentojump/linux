@@ -23,20 +23,18 @@ if [[ $any_failure == yes ]]; then
 fi
 
 echo
-echo "Nominal program size"
-echo "===================="
-echo "By \"nominal\", we mean we start from this value, estimate how many lines"
-echo "of C code there should be, and then generate the program. The obtained"
-echo "BPF assembly may have a slightly different size."
+echo "Relative program size"
+echo "====================="
+echo "Unit: how many times to repeat the base workload."
 echo "-------------------------------------------------------------------------"
 
 cat autogen/program_size.txt
 
 echo
-echo "Real program size"
-echo "================="
-echo "By \"real\", we mean this is the actual size of obtained BPF programs,"
-echo "measured through tools like \`llvm-objdump' and \`bpftool'."
+echo "Actual program size"
+echo "==================="
+echo "Unit: number of assembly instructions, measured through tools like"
+echo "\`llvm-objdump' and \`bpftool'."
 echo "-------------------------------------------------------------------------"
 
 for prog_name in $( cat autogen/program_name.txt )

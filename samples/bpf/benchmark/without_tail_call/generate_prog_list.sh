@@ -2,7 +2,8 @@
 
 prompt() {
     echo
-    echo "Specify the size of BPF programs to generate. Unit: number of BPF instructions."
+    echo "Specify the size of BPF programs to generate. Unit: how many times to repeat the"
+    echo "base workload."
     echo
     echo "Usage: use default size (seq 100000 100000 1000000)"
     echo
