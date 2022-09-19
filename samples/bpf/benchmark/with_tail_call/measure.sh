@@ -23,27 +23,36 @@ if [[ $any_failure == yes ]]; then
 fi
 
 echo
-echo "Number of BPF instructions per call (nominal)"
-echo "============================================="
-echo "By \"nominal\", we mean we start from this value, estimate how many lines"
-echo "of C code there should be, and then generate the program. The obtained"
-echo "BPF assembly may have a slightly different size."
+echo "Size of a single tail call"
+echo "=========================="
+echo "Unit: how many times to repeat the base workload."
 echo "-------------------------------------------------------------------------"
 
-# TODO make it adjustable
-echo 100000
+one_call_size=$( tail -n 1 autogen/program_size.txt )
+echo $one_call_size
 
 echo
 echo "Number of tail calls"
 echo "===================="
 
-cat autogen/program_size.txt
+head -n -1 autogen/program_size.txt
 
 echo
-echo "Real program size"
-echo "================="
-echo "By \"real\", we mean this is the actual size of obtained BPF programs,"
-echo "measured through tools like \`llvm-objdump' and \`bpftool'."
+echo "Relative program size"
+echo "====================="
+echo "Unit: how many times to repeat the base workload."
+echo "-------------------------------------------------------------------------"
+
+for call_num in $( head -n -1 autogen/program_size.txt )
+do
+    bc <<< "$one_call_size * $call_num"
+done
+
+echo
+echo "Actual program size"
+echo "==================="
+echo "Unit: number of assembly instructions, measured through tools like"
+echo "\`llvm-objdump' and \`bpftool'."
 echo "-------------------------------------------------------------------------"
 
 for prog_name in $( cat autogen/program_name.txt )
@@ -53,9 +62,6 @@ do
         cut      -d ':' -f 1                                                  |\
         tr       -d ' '
 done
-
-# TODO
-# what should we use as X coordinate?
 
 echo
 echo "CPU cycles"

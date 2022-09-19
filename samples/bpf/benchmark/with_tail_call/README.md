@@ -32,11 +32,9 @@ Example output:
 ```
 //////////////////////////// Summary ///////////////////////////
 
-Number of BPF instructions per call (nominal)
-=============================================
-By "nominal", we mean we start from this value, estimate how many lines
-of C code there should be, and then generate the program. The obtained
-BPF assembly may have a slightly different size.
+Size of a single tail call
+==========================
+Unit: how many times to repeat the base workload.
 -------------------------------------------------------------------------
 100000
 
@@ -63,54 +61,79 @@ Number of tail calls
 19
 20
 
-Real program size
-=================
-By "real", we mean this is the actual size of obtained BPF programs,
-measured through tools like `llvm-objdump' and `bpftool'.
+Relative program size
+=====================
+Unit: how many times to repeat the base workload.
 -------------------------------------------------------------------------
-100016
-200033
-300050
-400067
-500084
-600101
-700118
-800135
-900152
-1000169
-1100186
-1200203
-1300220
-1400237
-1500254
-1600271
-1700288
-1800305
-1900322
-2000339
+100000
+200000
+300000
+400000
+500000
+600000
+700000
+800000
+900000
+1000000
+1100000
+1200000
+1300000
+1400000
+1500000
+1600000
+1700000
+1800000
+1900000
+2000000
+
+Actual program size
+===================
+Unit: number of assembly instructions, measured through tools like
+`llvm-objdump' and `bpftool'.
+-------------------------------------------------------------------------
+100007
+200015
+300023
+400031
+500039
+600047
+700055
+800063
+900071
+1000079
+1100087
+1200095
+1300103
+1400111
+1500119
+1600127
+1700135
+1800143
+1900151
+2000159
 
 CPU cycles
 ==========
-6434634
-12855267
-19350063
-26914191
-33420843
-40485625
-45592212
-51328694
-58693333
-64255254
-70788572
-77865488
-83683126
-90491380
-97011499
-104181253
-110664174
-120470599
-126389125
-129187423
+1004205
+2126470
+3281615
+4528513
+5626115
+6875193
+7859945
+8921442
+9951184
+11186578
+12336124
+13339547
+14076688
+15533656
+16744719
+17924336
+18759150
+19820298
+21189313
+21743488
 ```
 
 Plot of the results:
@@ -126,22 +149,26 @@ If it took too long to build the BPF programs, you have two options:
 
 ## Customize the BPF programs under test
 
-One can test their desired portion within the whole segment, with custom range, granularity (TODO) and number of samples. This is achieved by providing extra arguments to `./generate_prog_list.sh`, which inturn will change `autogen/program_name.txt` and `autogen/program_size.txt` before actually building the programs.
+One can test their desired portion within the whole segment, with custom range, granularity and number of samples. This is achieved by providing extra arguments to `./generate_prog_list.sh`, which inturn will change `autogen/program_name.txt` and `autogen/program_size.txt` before actually building the programs.
 
 Usage:
 
 ```
-Specify the size of BPF programs to generate. Unit: number of tail calls.
+Specify the size of BPF programs to generate.
 
-Usage: use default size (seq 20)
+Usage: ./generate_prog_list.sh ONE_CALL_SIZE CALL_NUM
+
+       ONE_CALL_SIZE    size of a single tail call. unit: how many times to
+                        repeat the base workload.
+
+       CALL_NUM      := [ LAST | FIRST LAST | FIRST INCREMENT LAST ]
+                        i.e. the same argument format as seq(1)
+
+
+       use default size (100000 1 1 20)
 
        ./generate_prog_list.sh
 
-       the script also accepts argument(s) in the same format as seq(1)
-
-       ./generate_prog_list.sh LAST
-       ./generate_prog_list.sh FIRST LAST
-       ./generate_prog_list.sh FIRST INCREMENT LAST
 
        remove generated files
 
@@ -150,29 +177,23 @@ Usage: use default size (seq 20)
 
 For example:
 
-To draw the first 10 samples:
+To let one tail call do 1/10 of the default workload:
 
 ```shell
-./generate_prog_list.sh 10
+./generate_prog_list.sh 10000  1 1 20
 ```
 
-<!--
-
-TODO make the workload of one single call adjustable
-
-To include totally 20 samples:
+To include only the first 10 samples:
 
 ```shell
-./generate_prog_list.sh 1000 1000 20000
+./generate_prog_list.sh 100000 1 1 10
 ```
 
 To revert to the default:
 
 ```shell
-./generate_prog_list.sh 100000 100000 1000000
+./generate_prog_list.sh 100000 1 1 20
 ```
-
--->
 
 ## Use prebuilt object files
 
