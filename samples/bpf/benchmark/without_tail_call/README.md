@@ -38,11 +38,9 @@ the limit of BPF program size. This script does NOT yet handle such
 cases well, and please treat the following report carefully. Some
 manual adjustments might be needed.
 
-Nominal program size
-====================
-By "nominal", we mean we start from this value, estimate how many lines
-of C code there should be, and then generate the program. The obtained
-BPF assembly may have a slightly different size.
+Relative program size
+=====================
+Unit: how many times to repeat the base workload.
 -------------------------------------------------------------------------
 100000
 200000
@@ -55,33 +53,33 @@ BPF assembly may have a slightly different size.
 900000
 1000000
 
-Real program size
-=================
-By "real", we mean this is the actual size of obtained BPF programs,
-measured through tools like `llvm-objdump' and `bpftool'.
+Actual program size
+===================
+Unit: number of assembly instructions, measured through tools like
+`llvm-objdump' and `bpftool'.
 -------------------------------------------------------------------------
-100010
-200010
-300010
-400010
-500010
-600010
-700010
-800010
-900010
-1000010
+100001
+200001
+300001
+400001
+500001
+600001
+700001
+800001
+900001
+1000001
 
 CPU cycles
 ==========
-6597257
-12860277
-19231489
-26073031
-32173381
-38274114
-46606346
-51249508
-58847190
+975542
+1944581
+2862417
+3963880
+5220014
+5933620
+6764664
+7954736
+8765898
 ```
 
 Plot of the results:
@@ -102,7 +100,8 @@ One can test their desired portion within the whole segment, with custom range, 
 Usage:
 
 ```
-Specify the size of BPF programs to generate. Unit: number of BPF instructions.
+Specify the size of BPF programs to generate. Unit: how many times to repeat the
+base workload.
 
 Usage: use default size (seq 100000 100000 1000000)
 
@@ -121,7 +120,7 @@ Usage: use default size (seq 100000 100000 1000000)
 
 For example:
 
-To draw the first 1/10 of the upper limit:
+To draw the first 1/100 of the upper limit:
 
 ```shell
 ./generate_prog_list.sh 1000 1000 10000

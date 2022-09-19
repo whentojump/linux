@@ -19,10 +19,8 @@ base_workload_src_filename=$2
 prog_name_list_filename=$3
 prog_size_list_filename=$4
 
-base_workload_c_insns=$( cat $base_workload_src_filename | wc -l )
-
 #
-# Replicate by a larger step (0.1k lines of C code) for better I/O efficiency
+# Replicate by a larger step (100x base workload) for better I/O efficiency
 #
 
 replicate_step=100
@@ -30,9 +28,7 @@ replicate_step=100
 # Remove the file of previous builds
 rm -f autogen/workload_0.1k_step.c
 
-replicate_time=$( bc <<< "$replicate_step / $base_workload_c_insns" )
-
-for i in $( seq $replicate_time )
+for i in $( seq $replicate_step )
 do
     cat $base_workload_src_filename >> autogen/workload_0.1k_step.c
 done
@@ -52,13 +48,9 @@ do
     prog_src_filename=$( sed 's/.o/.c/' <<< $prog_name )
 
     # Calculate how many times the base workload should get replicated
-    bpf_asm_insns=$prog_size
-    # The ratio is approximately 2.5 / 1. Also we want to keep the size a
-    # multiple of 100.
-    c_insns=$( bc <<< "$bpf_asm_insns / 250 * 100" )
-    replicate_time=$( bc <<< "$c_insns / $replicate_step" )
+    replicate_time=$( bc <<< "$prog_size / $replicate_step" )
     # Name the workload source file by number of lines of C code
-    workload_src_filename="workload_${c_insns}.c"
+    workload_src_filename="workload_${prog_size}.c"
 
     # Generate source files
     echo "Generating autogen/$prog_src_filename"
