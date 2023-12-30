@@ -197,6 +197,8 @@ SECTIONS
 		_edata = .;
 	} :data
 
+	LLVM_COV
+
 	BUG_TABLE
 
 	ORC_UNWIND_TABLE
