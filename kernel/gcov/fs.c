@@ -667,6 +667,26 @@ static const struct file_operations gcov_reset_fops = {
 	.llseek = noop_llseek,
 };
 
+static ssize_t mock_write(struct file *file, const char __user *addr,
+			   size_t len, loff_t *pos)
+{
+	pr_warn("mock write\n");
+	return len;
+}
+
+static ssize_t mock_read(struct file *file, char __user *addr, size_t len,
+			  loff_t *pos)
+{
+	pr_warn("mock read\n");
+	return 0;
+}
+
+static const struct file_operations mock_fops = {
+	.write	= mock_write,
+	.read	= mock_read,
+	.llseek = noop_llseek,
+};
+
 /*
  * Create a node for a given profiling data set and add it to all lists and
  * debugfs. Needs to be called with node_lock held.
@@ -863,20 +883,25 @@ void gcov_event(enum gcov_action action, struct gcov_info *info)
 /* Create debugfs entries. */
 static __init int gcov_fs_init(void)
 {
+	struct dentry *dentryplay;
+
 	init_node(&root_node, NULL, NULL, NULL);
 	/*
 	 * /sys/kernel/debug/gcov will be parent for the reset control file
 	 * and all profiling files.
 	 */
 	root_node.dentry = debugfs_create_dir("gcov", NULL);
+	dentryplay       = debugfs_create_dir("gcovplay", NULL);
 	/*
 	 * Create reset file which resets all profiling counts when written
 	 * to.
 	 */
 	debugfs_create_file("reset", 0600, root_node.dentry, NULL,
 			    &gcov_reset_fops);
+	debugfs_create_file("reset", 0600, dentryplay, NULL,
+			    &mock_fops);
 	/* Replay previous events to get our fs hierarchy up-to-date. */
-	gcov_enable_events();
+	gcov_enable_events(); // ???
 	return 0;
 }
 device_initcall(gcov_fs_init);
