@@ -37,6 +37,8 @@ void gcov_enable_events(void)
 {
 	struct gcov_info *info = NULL;
 
+	pr_warn("gcov_enable_events() called");
+
 	mutex_lock(&gcov_lock);
 	gcov_events_enabled = 1;
 

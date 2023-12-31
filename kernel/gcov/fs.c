@@ -863,6 +863,8 @@ void gcov_event(enum gcov_action action, struct gcov_info *info)
 	node = get_node_by_name(gcov_info_filename(info));
 	switch (action) {
 	case GCOV_ADD:
+		// Realpath of kernel source files
+		pr_warn("gcov_event(GCOV_ADD, info) called, file name is %s", gcov_info_filename(info));
 		if (node)
 			add_info(node, info);
 		else
@@ -901,7 +903,7 @@ static __init int gcov_fs_init(void)
 	debugfs_create_file("reset", 0600, dentryplay, NULL,
 			    &mock_fops);
 	/* Replay previous events to get our fs hierarchy up-to-date. */
-	gcov_enable_events(); // ???
+	gcov_enable_events(); // --> gcov_event() --> add_node() --> new_node()
 	return 0;
 }
 device_initcall(gcov_fs_init);

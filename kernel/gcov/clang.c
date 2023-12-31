@@ -79,9 +79,19 @@ static struct gcov_info *current_info;
 
 static LIST_HEAD(clang_gcov_list);
 
+/*
+ * __gcov_init is called by gcc-generated constructor code for each object
+ * file compiled with -fprofile-arcs.
+ */
+// LLVM calls llvm_gcov_init() once per module, and provides a couple of
+// callbacks that we can use to ask for more data.
 void llvm_gcov_init(llvm_gcov_callback writeout, llvm_gcov_callback flush)
 {
 	struct gcov_info *info = kzalloc(sizeof(*info), GFP_KERNEL);
+
+	pr_warn("llvm_gcov_init() called");
+	// For each .{gcda, gcno} pair, called once
+	// Who's the called???
 
 	if (!info)
 		return;
@@ -95,8 +105,11 @@ void llvm_gcov_init(llvm_gcov_callback writeout, llvm_gcov_callback flush)
 	current_info = info;
 	writeout();
 	current_info = NULL;
-	if (gcov_events_enabled)
+	if (gcov_events_enabled) {
 		gcov_event(GCOV_ADD, info);
+	} else {
+		pr_warn("gcov_event() not called yet");
+	}
 
 	mutex_unlock(&gcov_lock);
 }
