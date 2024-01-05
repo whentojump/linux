@@ -681,8 +681,49 @@ static ssize_t mock_read(struct file *file, char __user *addr, size_t len,
 	return 0;
 }
 
+static char buff[1024];
+
+// Note: echo -e "\b" or printf "\n" would be split into multiple invocations
+static ssize_t play_write(struct file *file, const char __user *addr,
+			   size_t len, loff_t *pos)
+{
+	ssize_t ret;
+
+	// buff = kcalloc(len+1, sizeof(char), GFP_KERNEL);
+	// if (!buff) {
+	// 	pr_warn("fail to allocate buffer\n");
+	// 	return -ENOMEM;
+	// }
+
+	// memcpy(buff, addr, len);
+
+	if (*pos == 0)
+		memset(buff, 0, 1024);
+
+	ret = simple_write_to_buffer(buff, sizeof(buff), pos, addr, len);
+	if (ret < 0) {
+		pr_warn("fail to write buffer\n");
+		// kfree(buff);
+		return ret;
+	}
+
+	pr_warn("play write: len=%lu, pos=%lu, ret=%d\n", len, *pos, ret);
+	pr_warn("%s\n", buff);
+
+	// Do things here
+
+	// kfree(buff);
+	return ret;
+}
+
 static const struct file_operations mock_fops = {
 	.write	= mock_write,
+	.read	= mock_read,
+	.llseek = noop_llseek,
+};
+
+static const struct file_operations play_fops = {
+	.write	= play_write,
 	.read	= mock_read,
 	.llseek = noop_llseek,
 };
@@ -900,6 +941,8 @@ static __init int gcov_fs_init(void)
 			    &gcov_reset_fops);
 	debugfs_create_file("reset", 0600, dentryplay, NULL,
 			    &mock_fops);
+	debugfs_create_file("play", 0600, dentryplay, NULL,
+			    &play_fops);
 	/* Replay previous events to get our fs hierarchy up-to-date. */
 	gcov_enable_events();
 	return 0;
