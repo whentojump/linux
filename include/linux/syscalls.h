@@ -348,6 +348,9 @@ asmlinkage long sys_io_uring_enter(unsigned int fd, u32 to_submit,
 asmlinkage long sys_io_uring_register(unsigned int fd, unsigned int op,
 				void __user *arg, unsigned int nr_args);
 
+/* dummy-profile-target/dummy.c */
+asmlinkage long sys_dummy(void);
+
 /* fs/xattr.c */
 asmlinkage long sys_setxattr(const char __user *path, const char __user *name,
 			     const void __user *value, size_t size, int flags);
