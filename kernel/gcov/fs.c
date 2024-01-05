@@ -15,7 +15,9 @@
  *		 Yi CDL Yang
  */
 
-#define pr_fmt(fmt)	"gcov: " fmt
+// Set to empty for now because we are crafting kernel-scc infrastructure in
+// this file too.
+#define pr_fmt(fmt)	"" fmt
 
 #include <linux/init.h>
 #include <linux/module.h>
@@ -681,6 +683,15 @@ static ssize_t mock_read(struct file *file, char __user *addr, size_t len,
 	return 0;
 }
 
+extern char __start___llvm_prf_names;
+extern char __stop___llvm_prf_names;
+extern char __start___llvm_prf_cnts;
+extern char __stop___llvm_prf_cnts;
+extern char __start___llvm_prf_data;
+extern char __stop___llvm_prf_data;
+extern char __start___llvm_prf_vnds;
+extern char __stop___llvm_prf_vnds;
+
 static char buff[1024];
 
 // Note: echo -e "\n" or printf "\n" would be split into multiple invocations
@@ -688,6 +699,9 @@ static ssize_t play_write(struct file *file, const char __user *addr,
 			   size_t len, loff_t *pos)
 {
 	ssize_t ret;
+	char *cnts_start = &__start___llvm_prf_cnts;
+	char *cnts_stop  =  &__stop___llvm_prf_cnts;
+	char *byte;
 
 	// buff = kcalloc(len+1, sizeof(char), GFP_KERNEL);
 	// if (!buff) {
@@ -711,6 +725,22 @@ static ssize_t play_write(struct file *file, const char __user *addr,
 	pr_warn("%s\n", buff);
 
 	// Do things here
+
+	// TODO what about proc/kallsyms
+	pr_warn("%px\n", &__start___llvm_prf_names);
+	pr_warn("%px\n", &__stop___llvm_prf_names);
+	pr_warn("%px\n", &__start___llvm_prf_cnts);
+	pr_warn("%px\n", &__stop___llvm_prf_cnts);
+	pr_warn("%px\n", &__start___llvm_prf_data);
+	pr_warn("%px\n", &__stop___llvm_prf_data);
+	pr_warn("%px\n", &__start___llvm_prf_vnds);
+	pr_warn("%px\n", &__stop___llvm_prf_vnds);
+
+	pr_warn("dump __llvm_prf_cnts section\n");
+	for (byte = cnts_start; byte < cnts_stop; byte++) {
+		printk(KERN_CONT "%x", *byte);
+	}
+	pr_warn("\n"); // flush
 
 	// kfree(buff);
 	return ret;
