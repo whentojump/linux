@@ -3,8 +3,6 @@
 # Makefile for the linux kernel.
 #
 
-GCOV_PROFILE := y
-
 ccflags-y := -fno-function-sections -fno-data-sections
 
 obj-y                          := main.o version.o mounts.o
