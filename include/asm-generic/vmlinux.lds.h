@@ -847,25 +847,25 @@
 #define LLVM_COV							\
 	. = ALIGN(8);							\
 	__llvm_prf_cnts : AT(ADDR(__llvm_prf_cnts) - LOAD_OFFSET) {	\
-				__llvm_prf_cnts_start = .;	\
-                *(__llvm_prf_cnts)			\
-				__llvm_prf_cnts_end = .;	\
-	}										\
+		__llvm_prf_cnts_start = .;				\
+		*(__llvm_prf_cnts)					\
+		__llvm_prf_cnts_end = .;				\
+	}								\
 	. = ALIGN(8);							\
 	__llvm_prf_data : AT(ADDR(__llvm_prf_data) - LOAD_OFFSET) {	\
-                *(__llvm_prf_data)			\
-    }										\
+		*(__llvm_prf_data)					\
+	}								\
 	. = ALIGN(8);							\
-    __llvm_prf_names : AT(ADDR(__llvm_prf_names) - LOAD_OFFSET) {	\
-                *(__llvm_prf_names)			\
-    }										\
+	__llvm_prf_names : AT(ADDR(__llvm_prf_names) - LOAD_OFFSET) {	\
+		*(__llvm_prf_names)					\
+	}								\
 	. = ALIGN(8);							\
-    __llvm_covfun : AT(ADDR(__llvm_covfun) - LOAD_OFFSET) {	\
-                *(__llvm_covfun)			\
-    }										\
+	__llvm_covfun : AT(ADDR(__llvm_covfun) - LOAD_OFFSET) {		\
+		*(__llvm_covfun)					\
+	}								\
 	. = ALIGN(8);							\
-    __llvm_covmap : AT(ADDR(__llvm_covmap) - LOAD_OFFSET) {	\
-                *(__llvm_covmap)			\
+	__llvm_covmap : AT(ADDR(__llvm_covmap) - LOAD_OFFSET) {		\
+		*(__llvm_covmap)					\
 	}
 #else
 #define LLVM_COV
