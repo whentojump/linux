@@ -847,9 +847,9 @@
 #define LLVM_COV							\
 	. = ALIGN(8);							\
 	__llvm_prf_cnts : AT(ADDR(__llvm_prf_cnts) - LOAD_OFFSET) {	\
-		__llvm_prf_cnts_start = .;				\
+		__start___llvm_prf_cnts = .;				\
 		*(__llvm_prf_cnts)					\
-		__llvm_prf_cnts_end = .;				\
+		__stop___llvm_prf_cnts = .;				\
 	}								\
 	. = ALIGN(8);							\
 	__llvm_prf_data : AT(ADDR(__llvm_prf_data) - LOAD_OFFSET) {	\
