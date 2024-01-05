@@ -683,7 +683,7 @@ static ssize_t mock_read(struct file *file, char __user *addr, size_t len,
 
 static char buff[1024];
 
-// Note: echo -e "\b" or printf "\n" would be split into multiple invocations
+// Note: echo -e "\n" or printf "\n" would be split into multiple invocations
 static ssize_t play_write(struct file *file, const char __user *addr,
 			   size_t len, loff_t *pos)
 {
