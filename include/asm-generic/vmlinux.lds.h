@@ -846,6 +846,12 @@
 #ifdef CONFIG_GCOV_KERNEL
 #define LLVM_COV							\
 	. = ALIGN(8);							\
+	__llvm_prf_names : AT(ADDR(__llvm_prf_names) - LOAD_OFFSET) {	\
+		__start___llvm_prf_names = .;				\
+		*(__llvm_prf_names)					\
+		__stop___llvm_prf_names = .;				\
+	}								\
+	. = ALIGN(8);							\
 	__llvm_prf_cnts : AT(ADDR(__llvm_prf_cnts) - LOAD_OFFSET) {	\
 		__start___llvm_prf_cnts = .;				\
 		*(__llvm_prf_cnts)					\
@@ -853,11 +859,15 @@
 	}								\
 	. = ALIGN(8);							\
 	__llvm_prf_data : AT(ADDR(__llvm_prf_data) - LOAD_OFFSET) {	\
+		__start___llvm_prf_data = .;				\
 		*(__llvm_prf_data)					\
+		__stop___llvm_prf_data = .;				\
 	}								\
 	. = ALIGN(8);							\
-	__llvm_prf_names : AT(ADDR(__llvm_prf_names) - LOAD_OFFSET) {	\
-		*(__llvm_prf_names)					\
+	__llvm_prf_vnds : AT(ADDR(__llvm_prf_vnds) - LOAD_OFFSET) {	\
+		__start___llvm_prf_vnds = .;				\
+		*(__llvm_prf_vnds)					\
+		__stop___llvm_prf_vnds = .;				\
 	}								\
 	. = ALIGN(8);							\
 	__llvm_covfun : AT(ADDR(__llvm_covfun) - LOAD_OFFSET) {		\
