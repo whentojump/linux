@@ -770,6 +770,20 @@ static ssize_t debug_write(struct file *file, const char __user *addr,
 	return ret;
 }
 
+// compiler-rt/lib/profile/InstrProfilingInternal.c
+
+static unsigned ProfileDumped = 0;
+
+unsigned lprofProfileDumped(void) {
+	return ProfileDumped;
+}
+
+void lprofSetProfileDumped(unsigned Value) {
+	ProfileDumped = Value;
+}
+
+// compiler-rt/lib/profile/InstrProfiling.c
+
 void __llvm_profile_reset_counters(void) {
 	// if (__llvm_profile_get_version() & VARIANT_MASK_TEMPORAL_PROF)
 	// 	__llvm_profile_global_timestamp = 1;
@@ -809,7 +823,7 @@ void __llvm_profile_reset_counters(void) {
 	// 		}
 	// 	}
 	// }
-	// lprofSetProfileDumped(0);
+	lprofSetProfileDumped(0);
 }
 
 static const struct file_operations scc_debug_fops = {
