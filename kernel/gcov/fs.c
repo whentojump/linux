@@ -670,33 +670,49 @@ static const struct file_operations gcov_reset_fops = {
 	.llseek = noop_llseek,
 };
 
+//----------------------------------------------------------------------------//
+//
+// File operations for SCC
+//
+//----------------------------------------------------------------------------//
+
 static ssize_t mock_write(struct file *file, const char __user *addr,
-			   size_t len, loff_t *pos)
+			  size_t len, loff_t *pos)
 {
 	pr_warn("mock write\n");
 	return len;
 }
 
 static ssize_t mock_read(struct file *file, char __user *addr, size_t len,
-			  loff_t *pos)
+			 loff_t *pos)
 {
 	pr_warn("mock read\n");
 	return 0;
 }
 
-extern char __start___llvm_prf_names;
-extern char __stop___llvm_prf_names;
-extern char __start___llvm_prf_cnts;
-extern char __stop___llvm_prf_cnts;
-extern char __start___llvm_prf_data;
-extern char __stop___llvm_prf_data;
-extern char __start___llvm_prf_vnds;
-extern char __stop___llvm_prf_vnds;
+static const struct file_operations scc_mock_fops = {
+	.write	= mock_write,
+	.read	= mock_read,
+	.llseek = noop_llseek,
+};
 
+// Write contents to the pseudo file "/sys/kernel/debug/scc/debug" to execute
+// commands
+//
+//   d: dump the __llvm_prf_cnts section
+//   r: reset counters
+//
+// E.g.
+//
+//   printf "d" > /sys/kernel/debug/scc/debug
+//
+// Note that `echo -e "\n"` or `printf "\n"` would be split into multiple
+// invocations and not supported
+
+// Command buffer
 static char buff[1024];
 
-// Note: echo -e "\n" or printf "\n" would be split into multiple invocations
-static ssize_t play_write(struct file *file, const char __user *addr,
+static ssize_t debug_write(struct file *file, const char __user *addr,
 			   size_t len, loff_t *pos)
 {
 	ssize_t ret;
@@ -723,21 +739,22 @@ static ssize_t play_write(struct file *file, const char __user *addr,
 		return ret;
 	}
 
-	pr_warn("play write: len=%lu, pos=%lu, ret=%d\n", len, *pos, ret);
-	pr_warn("%s\n", buff);
+	// pr_warn("debug write: len=%lu, pos=%lu, ret=%d\n", len, *pos, ret);
+	// pr_warn("%s\n", buff);
 
 	// Do things here
 
 	if (buff[0] == 'd') /* dump */ {
-		// TODO what about proc/kallsyms
-		pr_warn("%px\n", &__start___llvm_prf_names);
-		pr_warn("%px\n", &__stop___llvm_prf_names);
-		pr_warn("%px\n", &__start___llvm_prf_cnts);
-		pr_warn("%px\n", &__stop___llvm_prf_cnts);
-		pr_warn("%px\n", &__start___llvm_prf_data);
-		pr_warn("%px\n", &__stop___llvm_prf_data);
-		pr_warn("%px\n", &__start___llvm_prf_vnds);
-		pr_warn("%px\n", &__stop___llvm_prf_vnds);
+		// TODO what about proc/kallsyms?
+
+		// pr_warn("%px\n", &__start___llvm_prf_names);
+		// pr_warn("%px\n", &__stop___llvm_prf_names);
+		// pr_warn("%px\n", &__start___llvm_prf_cnts);
+		// pr_warn("%px\n", &__stop___llvm_prf_cnts);
+		// pr_warn("%px\n", &__start___llvm_prf_data);
+		// pr_warn("%px\n", &__stop___llvm_prf_data);
+		// pr_warn("%px\n", &__start___llvm_prf_vnds);
+		// pr_warn("%px\n", &__stop___llvm_prf_vnds);
 
 		pr_warn("dump __llvm_prf_cnts section\n");
 		for (byte = cnts_start; byte < cnts_stop; byte+=8) {
@@ -795,14 +812,8 @@ void __llvm_profile_reset_counters(void) {
 	// lprofSetProfileDumped(0);
 }
 
-static const struct file_operations mock_fops = {
-	.write	= mock_write,
-	.read	= mock_read,
-	.llseek = noop_llseek,
-};
-
-static const struct file_operations play_fops = {
-	.write	= play_write,
+static const struct file_operations scc_debug_fops = {
+	.write	= debug_write,
 	.read	= mock_read,
 	.llseek = noop_llseek,
 };
@@ -1003,7 +1014,7 @@ void gcov_event(enum gcov_action action, struct gcov_info *info)
 /* Create debugfs entries. */
 static __init int gcov_fs_init(void)
 {
-	struct dentry *dentryplay;
+	struct dentry *scc_root_dentry;
 
 	init_node(&root_node, NULL, NULL, NULL);
 	/*
@@ -1011,17 +1022,17 @@ static __init int gcov_fs_init(void)
 	 * and all profiling files.
 	 */
 	root_node.dentry = debugfs_create_dir("gcov", NULL);
-	dentryplay       = debugfs_create_dir("gcovplay", NULL);
+	scc_root_dentry  = debugfs_create_dir("scc", NULL);
 	/*
 	 * Create reset file which resets all profiling counts when written
 	 * to.
 	 */
 	debugfs_create_file("reset", 0600, root_node.dentry, NULL,
 			    &gcov_reset_fops);
-	debugfs_create_file("reset", 0600, dentryplay, NULL,
-			    &mock_fops);
-	debugfs_create_file("play", 0600, dentryplay, NULL,
-			    &play_fops);
+	debugfs_create_file("mock", 0600, scc_root_dentry, NULL,
+			    &scc_mock_fops);
+	debugfs_create_file("debug", 0600, scc_root_dentry, NULL,
+			    &scc_debug_fops);
 	/* Replay previous events to get our fs hierarchy up-to-date. */
 	gcov_enable_events();
 	return 0;
