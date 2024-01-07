@@ -748,6 +748,47 @@ static ssize_t play_write(struct file *file, const char __user *addr,
 	return ret;
 }
 
+void __llvm_profile_reset_counters(void) {
+	if (__llvm_profile_get_version() & VARIANT_MASK_TEMPORAL_PROF)
+		__llvm_profile_global_timestamp = 1;
+
+	char *I = __llvm_profile_begin_counters();
+	char *E = __llvm_profile_end_counters();
+
+	char ResetValue =
+		(__llvm_profile_get_version() & VARIANT_MASK_BYTE_COVERAGE) ? 0xFF : 0;
+	memset(I, ResetValue, E - I);
+
+	I = __llvm_profile_begin_bitmap();
+	E = __llvm_profile_end_bitmap();
+	memset(I, 0x0, E - I);
+
+	const __llvm_profile_data *DataBegin = __llvm_profile_begin_data();
+	const __llvm_profile_data *DataEnd = __llvm_profile_end_data();
+	const __llvm_profile_data *DI;
+	for (DI = DataBegin; DI < DataEnd; ++DI) {
+		uint64_t CurrentVSiteCount = 0;
+		uint32_t VKI, i;
+		if (!DI->Values)
+			continue;
+
+		ValueProfNode **ValueCounters = (ValueProfNode **)DI->Values;
+
+		for (VKI = IPVK_First; VKI <= IPVK_Last; ++VKI)
+			CurrentVSiteCount += DI->NumValueSites[VKI];
+
+		for (i = 0; i < CurrentVSiteCount; ++i) {
+			ValueProfNode *CurrVNode = ValueCounters[i];
+
+			while (CurrVNode) {
+				CurrVNode->Count = 0;
+				CurrVNode = CurrVNode->Next;
+			}
+		}
+	}
+	lprofSetProfileDumped(0);
+}
+
 static const struct file_operations mock_fops = {
 	.write	= mock_write,
 	.read	= mock_read,
