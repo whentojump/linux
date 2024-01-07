@@ -785,25 +785,28 @@ void lprofSetProfileDumped(unsigned Value) {
 // compiler-rt/lib/profile/InstrProfiling.c
 
 void __llvm_profile_reset_counters(void) {
+	// NOTE(wt): based on user-space observations, skipped
 	// if (__llvm_profile_get_version() & VARIANT_MASK_TEMPORAL_PROF)
 	// 	__llvm_profile_global_timestamp = 1;
 
 	char *I = &__start___llvm_prf_cnts;
 	char *E = &__stop___llvm_prf_cnts;
 
+	// NOTE(wt): based on user-space observations, hardwired to 0
 	// char ResetValue =
 	// 	(__llvm_profile_get_version() & VARIANT_MASK_BYTE_COVERAGE) ? 0xFF : 0;
 	memset(I, 0, E - I);
 
-	// This is MC/DC-only
+	// NOTE(wt): this is added by MC/DC patch, revisit later
 	// I = __llvm_profile_begin_bitmap();
 	// E = __llvm_profile_end_bitmap();
 	// memset(I, 0x0, E - I);
 
-	// const __llvm_profile_data *DataBegin = __llvm_profile_begin_data();
-	// const __llvm_profile_data *DataEnd = __llvm_profile_end_data();
-	// const __llvm_profile_data *DI;
-	// for (DI = DataBegin; DI < DataEnd; ++DI) {
+	__llvm_profile_data *DataBegin = (__llvm_profile_data *) &__start___llvm_prf_data;
+	__llvm_profile_data *DataEnd = (__llvm_profile_data *) &__stop___llvm_prf_data;
+	__llvm_profile_data *DI;
+	for (DI = DataBegin; DI < DataEnd; ++DI) {
+		pr_warn("one iter\n");
 	// 	uint64_t CurrentVSiteCount = 0;
 	// 	uint32_t VKI, i;
 	// 	if (!DI->Values)
@@ -822,7 +825,7 @@ void __llvm_profile_reset_counters(void) {
 	// 			CurrVNode = CurrVNode->Next;
 	// 		}
 	// 	}
-	// }
+	}
 	lprofSetProfileDumped(0);
 }
 
