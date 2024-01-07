@@ -1,12 +1,20 @@
 #include <linux/kernel.h>
 #include <linux/syscalls.h>
 
-static long one(void) { return 1L; }
-static long two(void) { return 2L; }
-static long identity(long in) { long out = in; return out; }
-
-SYSCALL_DEFINE0(dummy)
+SYSCALL_DEFINE1(dummy, long, in)
 {
-	printk("a dummy syscall\n");
-	return one() + two() + identity(3);
+	long out;
+
+	switch (in) {
+	case 1:
+		out = 123;
+		break;
+	case 2:
+		out = 456;
+		break;
+	default:
+		out = 789;
+	}
+
+	return out;
 }
