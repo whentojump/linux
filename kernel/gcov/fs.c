@@ -30,6 +30,7 @@
 #include <linux/seq_file.h>
 #include <linux/mm.h>
 #include "gcov.h"
+#include "scc.h"
 
 /**
  * struct gcov_node - represents a debugfs entry
@@ -727,66 +728,71 @@ static ssize_t play_write(struct file *file, const char __user *addr,
 
 	// Do things here
 
-	// TODO what about proc/kallsyms
-	pr_warn("%px\n", &__start___llvm_prf_names);
-	pr_warn("%px\n", &__stop___llvm_prf_names);
-	pr_warn("%px\n", &__start___llvm_prf_cnts);
-	pr_warn("%px\n", &__stop___llvm_prf_cnts);
-	pr_warn("%px\n", &__start___llvm_prf_data);
-	pr_warn("%px\n", &__stop___llvm_prf_data);
-	pr_warn("%px\n", &__start___llvm_prf_vnds);
-	pr_warn("%px\n", &__stop___llvm_prf_vnds);
+	if (buff[0] == 'd') /* dump */ {
+		// TODO what about proc/kallsyms
+		pr_warn("%px\n", &__start___llvm_prf_names);
+		pr_warn("%px\n", &__stop___llvm_prf_names);
+		pr_warn("%px\n", &__start___llvm_prf_cnts);
+		pr_warn("%px\n", &__stop___llvm_prf_cnts);
+		pr_warn("%px\n", &__start___llvm_prf_data);
+		pr_warn("%px\n", &__stop___llvm_prf_data);
+		pr_warn("%px\n", &__start___llvm_prf_vnds);
+		pr_warn("%px\n", &__stop___llvm_prf_vnds);
 
-	pr_warn("dump __llvm_prf_cnts section\n");
-	for (byte = cnts_start; byte < cnts_stop; byte+=8) {
-		qword = (u64 *) byte;
-		printk(KERN_CONT "%lu ", *qword);
+		pr_warn("dump __llvm_prf_cnts section\n");
+		for (byte = cnts_start; byte < cnts_stop; byte+=8) {
+			qword = (u64 *) byte;
+			printk(KERN_CONT "%lu ", *qword);
+		}
+		pr_warn("\n"); // flush
+	} else if (buff[0] == 'r') /* reset */ {
+		__llvm_profile_reset_counters();
 	}
-	pr_warn("\n"); // flush
 
 	// kfree(buff);
 	return ret;
 }
 
 void __llvm_profile_reset_counters(void) {
-	if (__llvm_profile_get_version() & VARIANT_MASK_TEMPORAL_PROF)
-		__llvm_profile_global_timestamp = 1;
+	// if (__llvm_profile_get_version() & VARIANT_MASK_TEMPORAL_PROF)
+	// 	__llvm_profile_global_timestamp = 1;
 
-	char *I = __llvm_profile_begin_counters();
-	char *E = __llvm_profile_end_counters();
+	char *I = &__start___llvm_prf_cnts;
+	char *E = &__stop___llvm_prf_cnts;
 
-	char ResetValue =
-		(__llvm_profile_get_version() & VARIANT_MASK_BYTE_COVERAGE) ? 0xFF : 0;
-	memset(I, ResetValue, E - I);
+	// char ResetValue =
+	// 	(__llvm_profile_get_version() & VARIANT_MASK_BYTE_COVERAGE) ? 0xFF : 0;
+	memset(I, 0, E - I);
 
-	I = __llvm_profile_begin_bitmap();
-	E = __llvm_profile_end_bitmap();
-	memset(I, 0x0, E - I);
+	// This is MC/DC-only
+	// I = __llvm_profile_begin_bitmap();
+	// E = __llvm_profile_end_bitmap();
+	// memset(I, 0x0, E - I);
 
-	const __llvm_profile_data *DataBegin = __llvm_profile_begin_data();
-	const __llvm_profile_data *DataEnd = __llvm_profile_end_data();
-	const __llvm_profile_data *DI;
-	for (DI = DataBegin; DI < DataEnd; ++DI) {
-		uint64_t CurrentVSiteCount = 0;
-		uint32_t VKI, i;
-		if (!DI->Values)
-			continue;
+	// const __llvm_profile_data *DataBegin = __llvm_profile_begin_data();
+	// const __llvm_profile_data *DataEnd = __llvm_profile_end_data();
+	// const __llvm_profile_data *DI;
+	// for (DI = DataBegin; DI < DataEnd; ++DI) {
+	// 	uint64_t CurrentVSiteCount = 0;
+	// 	uint32_t VKI, i;
+	// 	if (!DI->Values)
+	// 		continue;
 
-		ValueProfNode **ValueCounters = (ValueProfNode **)DI->Values;
+	// 	ValueProfNode **ValueCounters = (ValueProfNode **)DI->Values;
 
-		for (VKI = IPVK_First; VKI <= IPVK_Last; ++VKI)
-			CurrentVSiteCount += DI->NumValueSites[VKI];
+	// 	for (VKI = IPVK_First; VKI <= IPVK_Last; ++VKI)
+	// 		CurrentVSiteCount += DI->NumValueSites[VKI];
 
-		for (i = 0; i < CurrentVSiteCount; ++i) {
-			ValueProfNode *CurrVNode = ValueCounters[i];
+	// 	for (i = 0; i < CurrentVSiteCount; ++i) {
+	// 		ValueProfNode *CurrVNode = ValueCounters[i];
 
-			while (CurrVNode) {
-				CurrVNode->Count = 0;
-				CurrVNode = CurrVNode->Next;
-			}
-		}
-	}
-	lprofSetProfileDumped(0);
+	// 		while (CurrVNode) {
+	// 			CurrVNode->Count = 0;
+	// 			CurrVNode = CurrVNode->Next;
+	// 		}
+	// 	}
+	// }
+	// lprofSetProfileDumped(0);
 }
 
 static const struct file_operations mock_fops = {
