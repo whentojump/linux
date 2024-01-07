@@ -702,6 +702,7 @@ static ssize_t play_write(struct file *file, const char __user *addr,
 	char *cnts_start = &__start___llvm_prf_cnts;
 	char *cnts_stop  =  &__stop___llvm_prf_cnts;
 	char *byte;
+	u64  *qword;
 
 	// buff = kcalloc(len+1, sizeof(char), GFP_KERNEL);
 	// if (!buff) {
@@ -737,8 +738,9 @@ static ssize_t play_write(struct file *file, const char __user *addr,
 	pr_warn("%px\n", &__stop___llvm_prf_vnds);
 
 	pr_warn("dump __llvm_prf_cnts section\n");
-	for (byte = cnts_start; byte < cnts_stop; byte++) {
-		printk(KERN_CONT "%x", *byte);
+	for (byte = cnts_start; byte < cnts_stop; byte+=8) {
+		qword = (u64 *) byte;
+		printk(KERN_CONT "%lu ", *qword);
 	}
 	pr_warn("\n"); // flush
 
