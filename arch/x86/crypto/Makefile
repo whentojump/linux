@@ -2,6 +2,10 @@
 #
 # x86 crypto algorithms
 
+# Disable PGO for curve25519-x86_64. With PGO enabled, clang runs out of
+# registers for some of the functions.
+PGO_PROFILE_curve25519-x86_64.o := n
+
 obj-$(CONFIG_CRYPTO_TWOFISH_586) += twofish-i586.o
 twofish-i586-y := twofish-i586-asm_32.o twofish_glue.o
 obj-$(CONFIG_CRYPTO_TWOFISH_X86_64) += twofish-x86_64.o

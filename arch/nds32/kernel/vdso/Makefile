@@ -17,6 +17,7 @@ ccflags-y := -shared -fno-common -fno-builtin -nostdlib -fPIC -Wl,-shared -g \
 
 # Disable gcov profiling for VDSO code
 GCOV_PROFILE := n
+PGO_PROFILE := n
 
 
 obj-y += vdso.o

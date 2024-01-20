@@ -95,6 +95,7 @@ GCOV_PROFILE	:= n
 KASAN_SANITIZE	:= n
 UBSAN_SANITIZE	:= n
 KCOV_INSTRUMENT	:= n
+PGO_PROFILE	:= n
 
 # Skip objtool checking for this directory because nVHE code is compiled with
 # non-standard build rules.
