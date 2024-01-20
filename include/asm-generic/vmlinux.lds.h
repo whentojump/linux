@@ -352,6 +352,16 @@
 		__llvm_prf_vnds_start = .;				\
 		*(__llvm_prf_vnds)					\
 		__llvm_prf_vnds_end = .;				\
+	}								\
+	__llvm_covfun : AT(ADDR(__llvm_covfun) - LOAD_OFFSET) {		\
+		__llvm_covfun_start = .;				\
+		*(__llvm_covfun)					\
+		__llvm_covfun_end = .;					\
+	}								\
+	__llvm_covmap : AT(ADDR(__llvm_covmap) - LOAD_OFFSET) {		\
+		__llvm_covmap_start = .;				\
+		*(__llvm_covmap)					\
+		__llvm_covmap_end = .;					\
 		__llvm_prf_end = .;					\
 	}
 #else
