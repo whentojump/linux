@@ -59,14 +59,30 @@ static void prf_fill_header(void **buffer)
 #else
 	header->magic = LLVM_INSTR_PROF_RAW_MAGIC_32;
 #endif
-	header->version = LLVM_VARIANT_MASK_IR_PROF | LLVM_INSTR_PROF_RAW_VERSION;
-	header->data_size = prf_data_count();
+	header->version = LLVM_VARIANT_MASK_IR_PROF // TODO We probably want to turn this flag off
+	                | LLVM_INSTR_PROF_RAW_VERSION;
+	// TODO: Introduced in .profraw v6 and v7
+	header->binary_ids_size = 0;
+	header->num_data = prf_data_count();
 	header->padding_bytes_before_counters = 0;
-	header->counters_size = prf_cnts_count();
+	header->num_counters = prf_cnts_count();
 	header->padding_bytes_after_counters = 0;
+	// TODO: Introduced in .profraw v9 (MC/DC patch)
+	header->num_bitmap_bytes = 0;
+	// TODO: Introduced in .profraw v9 (MC/DC patch)
+	header->padding_bytes_after_bitmap_bytes = 0;
 	header->names_size = prf_names_count();
-	header->counters_delta = (u64)__llvm_prf_cnts_start;
-	header->names_delta = (u64)__llvm_prf_names_start;
+	// NOTE: Introduced in .profraw v8
+	//       This is the real *breaking* change between LLVM 12 and 18,
+	//       which changes the meaning of `CounterPtr` in `struct
+	//       ProfileData` from absolute value to relative value...
+	// See https://github.com/xlab-uiuc/llvm-mcdc/commit/a1532ed27582038e2d9588108ba0fe8237f01844
+	header->counters_delta = (u64)__llvm_prf_cnts_start -
+	                         (u64)__llvm_prf_data_start;
+	// // TODO: Introduced in .profraw v9 (MC/DC patch)
+	// header->bitmap_delta   = (u64)__llvm_prf_bits_start -
+	//                          (u64)__llvm_prf_data_start;
+	header->names_delta    = (u64)__llvm_prf_names_start;
 	header->value_kind_last = LLVM_INSTR_PROF_IPVK_LAST;
 
 	*buffer += sizeof(*header);

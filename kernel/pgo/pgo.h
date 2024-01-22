@@ -43,7 +43,7 @@
 		 (u64)'R' << 8  |	\
 		 (u64)129)
 
-#define LLVM_INSTR_PROF_RAW_VERSION		5
+#define LLVM_INSTR_PROF_RAW_VERSION		9
 #define LLVM_INSTR_PROF_DATA_ALIGNMENT		8
 #define LLVM_INSTR_PROF_IPVK_FIRST		0
 #define LLVM_INSTR_PROF_IPVK_LAST		1
@@ -56,10 +56,10 @@
  * struct llvm_prf_header - represents the raw profile header data structure.
  * @magic: the magic token for the file format.
  * @version: the version of the file format.
- * @data_size: the number of entries in the profile data section.
+ * @num_data: the number of entries in the profile data section.
  * @padding_bytes_before_counters: the number of padding bytes before the
  *   counters.
- * @counters_size: the size in bytes of the LLVM profile section containing the
+ * @num_counters: the size in bytes of the LLVM profile section containing the
  *   counters.
  * @padding_bytes_after_counters: the number of padding bytes after the
  *   counters.
@@ -72,12 +72,16 @@
 struct llvm_prf_header {
 	u64 magic;
 	u64 version;
-	u64 data_size;
+	u64 binary_ids_size;
+	u64 num_data;
 	u64 padding_bytes_before_counters;
-	u64 counters_size;
+	u64 num_counters;
 	u64 padding_bytes_after_counters;
+	u64 num_bitmap_bytes;
+	u64 padding_bytes_after_bitmap_bytes;
 	u64 names_size;
 	u64 counters_delta;
+	u64 bitmap_delta;
 	u64 names_delta;
 	u64 value_kind_last;
 };
@@ -87,7 +91,7 @@ struct llvm_prf_header {
  * @name_ref: the reference to the function's name.
  * @func_hash: the hash value of the function.
  * @counter_ptr: a pointer to the profile counter.
- * @function_ptr: a pointer to the function.
+ * @function_pointer: a pointer to the function.
  * @values: the profiling values associated with this function.
  * @num_counters: the number of counters in the function.
  * @num_value_sites: the number of value profile sites.
@@ -96,10 +100,12 @@ struct llvm_prf_data {
 	const u64 name_ref;
 	const u64 func_hash;
 	const void *counter_ptr;
-	const void *function_ptr;
+	const void *bitmap_ptr;
+	const void *function_pointer;
 	void *values;
 	const u32 num_counters;
 	const u16 num_value_sites[LLVM_INSTR_PROF_IPVK_LAST + 1];
+	const u32 num_bitmap_bytes;
 } __aligned(LLVM_INSTR_PROF_DATA_ALIGNMENT);
 
 /**
