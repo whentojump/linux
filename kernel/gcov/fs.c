@@ -293,6 +293,7 @@ static int gcov_seq_open(struct inode *inode, struct file *file)
 	struct gcov_info *info;
 	int rc = -ENOMEM;
 
+	pr_warn("gcov_seq_open()");
 	mutex_lock(&node_lock);
 	/*
 	 * Read from a profiling data copy to minimize reference tracking
@@ -331,6 +332,7 @@ static int gcov_seq_release(struct inode *inode, struct file *file)
 	struct gcov_info *info;
 	struct seq_file *seq;
 
+	pr_warn("gcov_seq_release()");
 	seq = file->private_data;
 	iter = seq->private;
 	info = gcov_iter_get_info(iter);
@@ -494,6 +496,7 @@ static void add_links(struct gcov_node *node, struct dentry *parent)
 		basename = kbasename(target);
 		if (basename == target)
 			goto out_err;
+		// NOTE where .gcno files are created
 		node->links[i] = debugfs_create_symlink(deskew(basename),
 							parent,	target);
 		kfree(target);
@@ -540,6 +543,7 @@ static struct gcov_node *new_node(struct gcov_node *parent,
 				  struct gcov_info *info, const char *name)
 {
 	struct gcov_node *node;
+	char myname[100];
 
 	node = kzalloc(sizeof(struct gcov_node) + strlen(name) + 1, GFP_KERNEL);
 	if (!node)
@@ -553,12 +557,16 @@ static struct gcov_node *new_node(struct gcov_node *parent,
 	init_node(node, info, name, parent);
 	/* Differentiate between gcov data file nodes and directory nodes. */
 	if (info) {
+		// NOTE where .gcda files are created
 		node->dentry = debugfs_create_file(deskew(node->name), 0600,
+					parent->dentry, node, &gcov_data_fops);
+		strcpy(myname, node->name);
+		node->dentry = debugfs_create_file(strcat(myname, "play"), 0600,
 					parent->dentry, node, &gcov_data_fops);
 	} else
 		node->dentry = debugfs_create_dir(node->name, parent->dentry);
 	if (info)
-		add_links(node, parent->dentry);
+		add_links(node, parent->dentry); // NOTE where .gcno files are created
 	list_add(&node->list, &parent->children);
 	list_add(&node->all, &all_head);
 

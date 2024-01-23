@@ -85,13 +85,14 @@ static LIST_HEAD(clang_gcov_list);
  */
 // LLVM calls llvm_gcov_init() once per module, and provides a couple of
 // callbacks that we can use to ask for more data.
+// TODO Defined both here and in LLVM, same signature. How to understand?
 void llvm_gcov_init(llvm_gcov_callback writeout, llvm_gcov_callback flush)
 {
 	struct gcov_info *info = kzalloc(sizeof(*info), GFP_KERNEL);
 
 	pr_warn("llvm_gcov_init() called");
-	// For each .{gcda, gcno} pair, called once
-	// Who's the called???
+	// NOTE For each .{gcda, gcno} pair, called once
+	// TODO Who's the caller? For user prog, looks like LLVM instrument the program and insert the caller into the target. (before main)
 
 	if (!info)
 		return;
@@ -108,12 +109,13 @@ void llvm_gcov_init(llvm_gcov_callback writeout, llvm_gcov_callback flush)
 	if (gcov_events_enabled) {
 		gcov_event(GCOV_ADD, info);
 	} else {
+		// NOTE Called later, add node to FS.
 		pr_warn("gcov_event() not called yet");
 	}
 
 	mutex_unlock(&gcov_lock);
 }
-EXPORT_SYMBOL(llvm_gcov_init);
+EXPORT_SYMBOL(llvm_gcov_init); // TODO how to understand
 
 void llvm_gcda_start_file(const char *orig_filename, u32 version, u32 checksum)
 {
@@ -157,6 +159,8 @@ void llvm_gcda_end_file(void)
 {
 }
 EXPORT_SYMBOL(llvm_gcda_end_file);
+
+/// -----
 
 /**
  * gcov_info_filename - return info filename
