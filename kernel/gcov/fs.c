@@ -807,6 +807,15 @@ void __llvm_profile_reset_counters(void) {
 	__llvm_profile_data *DI;
 	for (DI = DataBegin; DI < DataEnd; ++DI) {
 		pr_warn("one iter\n");
+		pr_warn("DI=%px\n", DI);
+
+		pr_warn("DI->NameRef=%lu\n", DI->NameRef);
+		pr_warn("DI->FuncHash=%lu\n", DI->FuncHash);
+		pr_warn("DI->CounterPtr=%px\n", DI->CounterPtr);
+		pr_warn("DI->FunctionPointer=%px\n", DI->FunctionPointer);
+		pr_warn("DI->Values=%px\n", DI->Values);
+		pr_warn("DI->NumCounters=%u\n", DI->NumCounters);
+		pr_warn("DI->NumBitmapBytes=%u\n", DI->NumBitmapBytes);
 	// 	uint64_t CurrentVSiteCount = 0;
 	// 	uint32_t VKI, i;
 	// 	if (!DI->Values)
