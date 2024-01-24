@@ -179,6 +179,9 @@ extern char __llvm_prf_names_end[];
 extern struct llvm_prf_value_node __llvm_prf_vnds_start[];
 extern struct llvm_prf_value_node __llvm_prf_vnds_end[];
 
+extern char __llvm_prf_bits_start[];
+extern char __llvm_prf_bits_end[];
+
 /* Locking for vnodes */
 extern unsigned long prf_lock(void);
 extern void prf_unlock(unsigned long flags);
@@ -203,6 +206,7 @@ __DEFINE_PRF_SIZE(data);
 __DEFINE_PRF_SIZE(cnts);
 __DEFINE_PRF_SIZE(names);
 __DEFINE_PRF_SIZE(vnds);
+__DEFINE_PRF_SIZE(bits);
 
 #undef __DEFINE_PRF_SIZE
 

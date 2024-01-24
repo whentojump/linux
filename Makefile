@@ -688,6 +688,9 @@ all: vmlinux
 CFLAGS_PGO_CLANG := -fprofile-instr-generate -fcoverage-mapping
 export CFLAGS_PGO_CLANG
 
+CFLAGS_SCC_CLANG_MCDC := -fcoverage-mcdc
+export CFLAGS_SCC_CLANG_MCDC
+
 CFLAGS_GCOV	:= -fprofile-arcs -ftest-coverage
 ifdef CONFIG_CC_IS_GCC
 CFLAGS_GCOV	+= -fno-tree-loop-im

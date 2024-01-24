@@ -32,4 +32,10 @@ config PGO_CLANG
 	  Note that the debugfs filesystem has to be mounted to access
 	  profiling data.
 
+config SCC_CLANG_MCDC
+	bool "Enable clang's MC/DC measurement (which is based on SCC)"
+	depends on PGO_CLANG
+	help
+	  Enable clang's MC/DC measurement (which is based on SCC)
+
 endmenu

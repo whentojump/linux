@@ -37,8 +37,13 @@ struct prf_private_data {
  * Raw profile data format:
  *
  *	- llvm_prf_header
+ *	- binary ids                  // introduced in version 6
  *	- __llvm_prf_data
+ *	- zero padding to 8 bytes     // (1)
  *	- __llvm_prf_cnts
+ *	- zero padding to 8 bytes     // (2)
+ *	- __llvm_prf_bits             // introduced in version 9, i.e. MC/DC
+ *	- zero padding to 8 bytes     // introduced in version 9, i.e. MC/DC (3)
  *	- __llvm_prf_names
  *	- zero padding to 8 bytes
  *	- for each llvm_prf_data in __llvm_prf_data:
@@ -49,6 +54,12 @@ struct prf_private_data {
  *			...
  *		...
  */
+
+// NOTE
+//
+// (1) Essentially empty because `struct ProfileData` before it is 8-byte aligned
+// (2) Essentially empty because counter is 8-byte wide
+// (3) Can be non-empty because the bitmap before it is 1-byte aligned
 
 static void prf_fill_header(void **buffer)
 {
@@ -61,27 +72,27 @@ static void prf_fill_header(void **buffer)
 #endif
 	header->version = LLVM_VARIANT_MASK_IR_PROF // TODO We probably want to turn this flag off
 	                | LLVM_INSTR_PROF_RAW_VERSION;
-	// TODO: Introduced in .profraw v6 and v7
+	// TODO: Introduced in .profraw version 6 and version 7
 	header->binary_ids_size = 0;
 	header->num_data = prf_data_count();
 	header->padding_bytes_before_counters = 0;
 	header->num_counters = prf_cnts_count();
 	header->padding_bytes_after_counters = 0;
-	// TODO: Introduced in .profraw v9 (MC/DC patch)
-	header->num_bitmap_bytes = 0;
-	// TODO: Introduced in .profraw v9 (MC/DC patch)
-	header->padding_bytes_after_bitmap_bytes = 0;
+	// NOTE: Introduced in .profraw version 9 (MC/DC patch)
+	header->num_bitmap_bytes = prf_bits_count();
+	// NOTE: Introduced in .profraw version 9 (MC/DC patch)
+	header->padding_bytes_after_bitmap_bytes = prf_get_padding(prf_bits_size());
 	header->names_size = prf_names_count();
-	// NOTE: Introduced in .profraw v8
+	// NOTE: Introduced in .profraw version 8
 	//       This is the real *breaking* change between LLVM 12 and 18,
 	//       which changes the meaning of `CounterPtr` in `struct
 	//       ProfileData` from absolute value to relative value...
 	// See https://github.com/xlab-uiuc/llvm-mcdc/commit/a1532ed27582038e2d9588108ba0fe8237f01844
 	header->counters_delta = (u64)__llvm_prf_cnts_start -
 	                         (u64)__llvm_prf_data_start;
-	// // TODO: Introduced in .profraw v9 (MC/DC patch)
-	// header->bitmap_delta   = (u64)__llvm_prf_bits_start -
-	//                          (u64)__llvm_prf_data_start;
+	// NOTE: Introduced in .profraw version 9 (MC/DC patch)
+	header->bitmap_delta   = (u64)__llvm_prf_bits_start -
+	                         (u64)__llvm_prf_data_start;
 	header->names_delta    = (u64)__llvm_prf_names_start;
 	header->value_kind_last = LLVM_INSTR_PROF_IPVK_LAST;
 
@@ -234,6 +245,8 @@ static unsigned long prf_buffer_size(void)
 	return sizeof(struct llvm_prf_header) +
 			prf_data_size()	+
 			prf_cnts_size() +
+			prf_bits_size() +
+			prf_get_padding(prf_bits_size()) +
 			prf_names_size() +
 			prf_get_padding(prf_names_size()) +
 			prf_get_value_size();
@@ -261,6 +274,8 @@ static int prf_serialize(struct prf_private_data *p)
 	prf_fill_header(&buffer);
 	prf_copy_to_buffer(&buffer, __llvm_prf_data_start,  prf_data_size());
 	prf_copy_to_buffer(&buffer, __llvm_prf_cnts_start,  prf_cnts_size());
+	prf_copy_to_buffer(&buffer, __llvm_prf_bits_start,  prf_bits_size());
+	buffer += prf_get_padding(prf_bits_size());
 	prf_copy_to_buffer(&buffer, __llvm_prf_names_start, prf_names_size());
 	buffer += prf_get_padding(prf_names_size());
 

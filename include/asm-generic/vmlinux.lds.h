@@ -353,6 +353,11 @@
 		*(__llvm_prf_vnds)					\
 		__llvm_prf_vnds_end = .;				\
 	}								\
+	__llvm_prf_bits : AT(ADDR(__llvm_prf_bits) - LOAD_OFFSET) {	\
+		__llvm_prf_bits_start = .;				\
+		*(__llvm_prf_bits)					\
+		__llvm_prf_bits_end = .;				\
+	}								\
 	__llvm_covfun : AT(ADDR(__llvm_covfun) - LOAD_OFFSET) {		\
 		__llvm_covfun_start = .;				\
 		*(__llvm_covfun)					\
