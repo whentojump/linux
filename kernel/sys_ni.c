@@ -52,6 +52,9 @@ COND_SYSCALL(io_uring_setup);
 COND_SYSCALL(io_uring_enter);
 COND_SYSCALL(io_uring_register);
 
+/* dummy-profile-target/dummy.c */
+COND_SYSCALL(dummy);
+
 /* fs/xattr.c */
 
 /* fs/dcache.c */
