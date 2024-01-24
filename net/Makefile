@@ -6,6 +6,9 @@
 # Rewritten to use lists instead of if-statements.
 #
 
+PGO_PROFILE := n
+export PGO_PROFILE
+
 obj-y				:= devres.o socket.o core/
 
 obj-$(CONFIG_COMPAT)		+= compat.o

@@ -3,6 +3,9 @@
 # Makefile for some libs needed in the kernel.
 #
 
+PGO_PROFILE := n
+export PGO_PROFILE
+
 ccflags-remove-$(CONFIG_FUNCTION_TRACER) += $(CC_FLAGS_FTRACE)
 
 # These files are disabled because they produce lots of non-interesting and/or
