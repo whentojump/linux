@@ -26,6 +26,8 @@
 #include <linux/vmalloc.h>
 #include "pgo.h"
 
+static inline unsigned long prf_get_padding(unsigned long size);
+
 static struct dentry *directory;
 
 struct prf_private_data {
