@@ -49,7 +49,7 @@
 #define LLVM_INSTR_PROF_IPVK_LAST		1
 #define LLVM_INSTR_PROF_MAX_NUM_VAL_PER_SITE	255
 
-#define LLVM_VARIANT_MASK_IR_PROF	(0x1ULL << 56)
+#define LLVM_VARIANT_MASK_IR_PROF	(0x1ULL << 56) // NOTE 1: IR 0: FE
 #define LLVM_VARIANT_MASK_CSIR_PROF	(0x1ULL << 57)
 
 /**
@@ -96,6 +96,9 @@ struct llvm_prf_header {
  * @num_counters: the number of counters in the function.
  * @num_value_sites: the number of value profile sites.
  */
+// NOTE: in LLVM source
+// struct COMPILER_RT_ALIGNAS(INSTR_PROF_DATA_ALIGNMENT) __llvm_profile_data
+// struct alignas(8) ProfileData
 struct llvm_prf_data {
 	const u64 name_ref;
 	const u64 func_hash;
@@ -126,6 +129,8 @@ struct llvm_prf_value_node_data {
  * @count: the counters' count.
  * @next: the next value node.
  */
+// NOTE: in LLVM source
+// ValueProfNode
 struct llvm_prf_value_node {
 	u64 value;
 	u64 count;
@@ -139,6 +144,8 @@ struct llvm_prf_value_node {
  * @num_value_kinds: the number of value profile kinds that has value profile
  *   data.
  */
+// NOTE: in LLVM source
+// ValueProfData
 struct llvm_prf_value_data {
 	u32 total_size;
 	u32 num_value_kinds;
@@ -152,6 +159,8 @@ struct llvm_prf_value_data {
  * @site_count_array: the first element of the array that stores the number
  *   of profiled values for each value site.
  */
+// NOTE: in LLVM source
+// ValueProfRecord
 struct llvm_prf_value_record {
 	u32 kind;
 	u32 num_value_sites;
@@ -173,12 +182,15 @@ extern struct llvm_prf_data __llvm_prf_data_end[];
 extern u64 __llvm_prf_cnts_start[];
 extern u64 __llvm_prf_cnts_end[];
 
+// TODO confirm from LLVM source a single unit in this section is indeed a char/byte
 extern char __llvm_prf_names_start[];
 extern char __llvm_prf_names_end[];
 
 extern struct llvm_prf_value_node __llvm_prf_vnds_start[];
 extern struct llvm_prf_value_node __llvm_prf_vnds_end[];
 
+// NOTE Each element is a byte
+//      See https://github.com/llvm/llvm-project/blob/424b9cf41abf376cc7a34640f5f451c91714f77b/compiler-rt/lib/profile/InstrProfilingBuffer.c#L93-L97
 extern char __llvm_prf_bits_start[];
 extern char __llvm_prf_bits_end[];
 

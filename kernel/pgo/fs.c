@@ -35,6 +35,8 @@ struct prf_private_data {
 	unsigned long size;
 };
 
+// See the relevant code in LLVM source: /llvm/lib/ProfileData/InstrProfReader.cpp
+
 /*
  * Raw profile data format:
  *
