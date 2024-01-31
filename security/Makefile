@@ -3,9 +3,6 @@
 # Makefile for the kernel security code
 #
 
-PGO_PROFILE := n
-export PGO_PROFILE
-
 obj-$(CONFIG_KEYS)			+= keys/
 
 # always enable default capabilities

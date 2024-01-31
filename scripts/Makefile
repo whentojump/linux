@@ -3,9 +3,6 @@
 # scripts contains sources for various helper programs used throughout
 # the kernel for the build process.
 
-PGO_PROFILE := n
-export PGO_PROFILE
-
 CRYPTO_LIBS = $(shell $(HOSTPKG_CONFIG) --libs libcrypto 2> /dev/null || echo -lcrypto)
 CRYPTO_CFLAGS = $(shell $(HOSTPKG_CONFIG) --cflags libcrypto 2> /dev/null)
 

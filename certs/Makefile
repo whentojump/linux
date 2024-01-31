@@ -3,9 +3,6 @@
 # Makefile for the linux kernel signature checking certificates.
 #
 
-PGO_PROFILE := n
-export PGO_PROFILE
-
 obj-$(CONFIG_SYSTEM_TRUSTED_KEYRING) += system_keyring.o system_certificates.o common.o
 obj-$(CONFIG_SYSTEM_BLACKLIST_KEYRING) += blacklist.o common.o
 obj-$(CONFIG_SYSTEM_REVOCATION_LIST) += revocation_certificates.o

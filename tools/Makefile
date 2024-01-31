@@ -1,8 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0
-
-PGO_PROFILE := n
-export PGO_PROFILE
-
 # Some of the tools (perf) use same make variables
 # as in kernel build.
 export srctree=

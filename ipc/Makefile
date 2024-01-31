@@ -3,9 +3,6 @@
 # Makefile for the linux ipc.
 #
 
-PGO_PROFILE := n
-export PGO_PROFILE
-
 obj-$(CONFIG_SYSVIPC_COMPAT) += compat.o
 obj-$(CONFIG_SYSVIPC) += util.o msgutil.o msg.o sem.o shm.o syscall.o
 obj-$(CONFIG_SYSVIPC_SYSCTL) += ipc_sysctl.o

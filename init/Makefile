@@ -3,9 +3,6 @@
 # Makefile for the linux kernel.
 #
 
-PGO_PROFILE := n
-export PGO_PROFILE
-
 ccflags-y := -fno-function-sections -fno-data-sections
 
 obj-y                          := main.o version.o mounts.o

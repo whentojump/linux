@@ -6,9 +6,6 @@
 # Rewritten to use lists instead of if-statements.
 #
 
-PGO_PROFILE := n
-export PGO_PROFILE
-
 obj-y				+= irqchip/
 obj-y				+= bus/
 

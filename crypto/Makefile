@@ -3,9 +3,6 @@
 # Cryptographic API
 #
 
-PGO_PROFILE := n
-export PGO_PROFILE
-
 obj-$(CONFIG_CRYPTO) += crypto.o
 crypto-y := api.o cipher.o compress.o
 
