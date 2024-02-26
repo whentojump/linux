@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0
 TARGETS = arm64
 TARGETS += bpf
-TARGETS += breakpoints
+# TARGETS += breakpoints
 # TARGETS += capabilities
 TARGETS += cgroup
 # TARGETS += clone3
